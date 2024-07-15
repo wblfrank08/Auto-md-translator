@@ -1,3 +1,7 @@
+## Frank update on 2024/7/15
+Add a new script to support EN-ZH: en-cn-translator.py (Reading md files from testdir/en-to-translate)
+
+
 # Auto-i18n：使用 ChatGPT 的自动多语言翻译工具
 
 Auto-i18n 是一个使用 ChatGPT 自动将 Markdown 文件批量翻译为多语言的工具。它实现了博客文章 i18n(Internationalization) 的全自动化。你仅需将博文推送至 GitHub 仓库，即可借助 GitHub Actions 实现自动转译为多种语言。（目前支持英语、西班牙语和阿拉伯语，后续将提供更多语言支持）
