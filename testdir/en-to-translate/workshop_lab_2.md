@@ -3,7 +3,7 @@ chapnum: 2
 ---
 # Lab 2: Introduction to Scenario Reuse
 
-## Learning goals
+## Learning goals - [Test for Automation]
 
 This lab is the second iteration of the safety-driven verification cycle. In this lab, you will learn how to tailor the OSC2 verification and validation (V&V) assets:
 
