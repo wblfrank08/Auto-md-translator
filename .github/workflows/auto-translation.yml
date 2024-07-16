@@ -42,6 +42,8 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install MkDocs dependencies
-        run: pip install -r requirements.txt
+        run: | 
+          pip install -r requirements.txt
+          pip install mkdocs mkdocs-material
       - name: Deploy with MkDocs
         run: mkdocs gh-deploy --force
