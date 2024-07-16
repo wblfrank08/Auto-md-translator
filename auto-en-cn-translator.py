@@ -16,9 +16,9 @@ max_length = 1800
 # 设置翻译的路径
 dir_to_translate = "testdir/en-to-translate"
 dir_translated = {
-    "en": "testdir/docs/en",
-    "es": "testdir/docs/es",
-    "zh": "testdir/docs/zh"
+    "en": "docs/en",
+    "es": "docs/es",
+    "zh": "docs/zh"
 }
 
 # 不进行翻译的文件列表
