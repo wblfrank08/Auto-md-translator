@@ -1,4 +1,4 @@
-name: ci
+name: auto-translation
 on:
   push:
     branches:
