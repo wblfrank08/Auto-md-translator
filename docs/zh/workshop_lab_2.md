@@ -2,75 +2,74 @@
 chapnum: 2
 ---
 
-# 实验室 2：场景重用介绍
+# 实验二：场景重用介绍
 
 ## 学习目标 - [自动化测试]
 
-这个实验室是以安全驱动的验证周期的第二次迭代。在这个实验室中，您将学习如何调整OSC2验证和验证（V&V）资产：
+这个实验是以安全为导向的验证循环的第二轮迭代。在这个实验中，你将学习如何定制OSC2验证和验证（V＆V）资产：
 
-- **调整场景**：
-    - 添加新的约束条件
-    - 使用驱动移动操作
-    - 使用并行和串行操作符扩展场景
-    - 重用现有的_cut_in_场景
+- **定制场景**：
+  - 添加新的约束条件
+  - 使用驱动移动操作
+  - 使用并行和串行运算符来扩展场景
+  - 重用现有的_cut_in_场景
 
 - **在Foretify中检查运行情况**：
-    - 使用Foretify日志文件检查运行情况
-    - 使用跟踪和可视化器检查运行情况
-    - 检查时间间隔
+   - 检查具有Foretify日志文件的运行情况
+   - 使用跟踪和可视化器检查运行情况
+   - 检查间隔
 
 - **覆盖率和性能指标收集**：
-    - 收集覆盖率
-    - KPI实施
-    - 检查器实施
+   - 覆盖率收集
+   - KPI实施
+   - 检测器实施
 
-## 调整场景
 
-在这一部分，您将学习可以利用来构建或修改OSC2场景的原则和语言构造。您将重用上一次提出的相同场景，并根据新的要求进行调整。
+## 定制场景
+
+在本节中，您将学习原则和语言构造，您可以利用它们构建或修改OSC2场景。你将重用上一个实验提出的相同场景，并根据新需求进行调整。
 
 ### 添加约束条件
 
-这个实验室探讨了三种基本约束条件 - 其他汽车的颜色和类型以及插入发生的一侧。根据您想要约束什么，您可以将约束条件添加到场景文件（在本例中为`$FTX_WORKSHOP/scenarios/cut_in_l01.osc`）或测试文件（在本例中为`$FTX_WORKSHOP/l01_intro/ts_l01_intro.osc`）。为了保持代码的可重用性，最佳做法是在测试文件中添加所需的约束条件，您将在这个实验室中看到。 
+本次实验探讨了三种基本约束条件——另一辆车的颜色和类型，以及切入发生的一侧。根据你想要设定哪些限制条件，你可以将约束条件添加到场景文件（在这种情况下是`$FTX_WORKSHOP/scenarios/cut_in_l01.osc`）或测试文件（在这种情况下是`$FTX_WORKSHOP/l01_intro/ts_l01_intro.osc`）。为了保持代码可重用性，在测试文件中添加所需的约束条件是最佳做法，如你将在本次实验中看到。
 
-!!! 示例 "亲自操作时间"
-    打开文件`$FTX_WORKSHOP/l01_intro/ts_l01_intro.osc`，在这里定义了测试。
+!!! 示例 "亲身操作"
+ 打开文件 `$FTX_WORKSHOP/l01_intro/ts_l01_intro.osc` ，其中定义了测试内容。
 
-    编辑`ts_l01_intro.osc`文件中的场景，并添加上述约束条件：
+ 编辑 `ts_l01_intro.osc` 文件中所定义的场景，并添加上述提到的约束条件：
 
 ```osc linenums="13"
-扩展 top.main:
-    进行 cIL：sut.cut_in_l01() 使用：
-        保持（it.car1.category == van）
-        保持（it.car1.color 在 [white, blue] 内）
-        保持（it.side == right）
+extend top.main:
+    do cil : sut.cut_in_l01() with:
+        keep (it.car1.category == van)
+        keep (it.car1.color in [white, blue])
+        keep (it.side == right)
 ```
 
-重新启动Foretify，将其设置为新的工作文件夹，并执行10次运行：
+重新启动Foretify，将其设置为一个新的工作文件夹并执行10次运行：
 
 ```bash
 foretify --work_dir $FTX_FM_WORKDIR/l01_intro/workdir3 \
     --load $FTX_WORKSHOP/l01_intro/ts_l01_intro.osc --crun 10 --batch
 ```
 
-在场景运行时，注意新引入的约束如何被执行。特别是你可以观察到cut_in始终来自右侧，执行cut_in的车辆是白色或蓝色的货车。
+在场景运行时，注意新引入的约束条件是如何被执行的。特别是你可以观察到切入动作始终是从右侧进行的，执行切入动作的车辆是白色或蓝色的货车。
 
+### 驾驶动作和场景操作符
 
-### 驱动行动及场景操作符
+在开发基本或复杂的OSC2场景时，有三个重要的要点需要记住：
 
-在开发基本或复杂的OSC2场景时，有三个重要的支柱需要牢记：
-
-- 驱动行动
+- 驾驶动作
 - 并行操作符
 - 串行操作符
 
-通过在重用现有的_cut_in_场景并编写_cut_in_and_slow_场景中实践，你将学会这些支柱的重要性。
+通过在重用现有的_cut_in_场景并编写_cut_in_and_slow_场景时实践使用这些要点，你将了解到它们的重要性。
 
+#### 驾驶动作
 
-#### _drive_ 驱动行动
+任何车辆角色都提供了驾驶动作，用于控制车辆的移动。单独使用驾驶动作会使车辆沿着随机路径行驶，该路径会被轻微约束在车道内。在本实验中，你将添加修饰符来约束路径和速度。
 
-任何车辆角色都提供 _drive_ 驱动行动，用于控制车辆移动。仅凭它本身，_drive_ 会导致车辆沿着随机路径行驶，并受到在车道内的柔性约束。在本实验中，您将添加修改器以约束路径和速度。
-
-对于 _sut_ 角色和另一种 _vehicle_ 类型的角色（_car1_），您可以按如下方式调用 _drive_ 驱动行动：
+对于_sut_角色和另一个类型为_vehicle_（_car1_）的角色，你可以按以下方式调用驾驶动作：
 
 ```osc linenums="1"
 sut.car.drive()
@@ -78,48 +77,40 @@ sut.car.drive()
 car1.drive()
 ```
 
-要向驾驶运动添加修改器（例如，保持一定速度或在某一车道行驶），使用以下方式：
+要为驾驶动作添加修饰符（例如，保持特定的速度或特定的车道），请使用以下语法：
 
 ```osc linenums="1"
 sut.car.drive() with:
-    <modifiers>
+    <修饰符>
 
 car1.drive() with:
-    <modifiers>
+    <修饰符>
 ```
 
-### 并行运算符
 
-并行运算符提供了执行两个或多个子模块的灵活性。您还可以控制不同子模块的执行之间的重叠。在下面的示例中，所有在 _parallel_ 运算符下的子模块都具有相同的持续时间，因为 _overlap_ 被设置为 _equal_。在高级实验室中，您将看到如何调整重叠。
+#### 并行运算符
 
-考虑下面的基本示例，其中 SUT 车辆和另一辆车辆正在行驶。您可以在这里找到此示例：`$FTX_WORKSHOP/scenarios/parallel_example.osc`：
+并行运算符提供了执行两个或多个子块的灵活性。您还可以控制不同子块之间执行的重叠。在这里您将看到的示例中，所有在 _parallel_ 运算符下的子块都以相同的持续时间执行，因为 _overlap_ 被设置为 _equal_。在高级实验室中，您将看到如何调整重叠。
 
-<p align="center">
-  <a href="images/workshop_l02_parallel.png" target="_blank">
-    <img src="images/workshop_l02_parallel.png">
-  </a>
-</p>
+考虑下面的基本示例，在这个示例中，sut.car 和另一辆车只是在行驶。您可以在这里找到这个示例：`$FTX_WORKSHOP/scenarios/parallel_example.osc`：
 
-在包含并行运算符的这个场景中，两个参与者正在执行以下操作：
+&lt;p align="center">
+  &lt;a href="images/workshop_l02_parallel.png" target="_blank">
+    &lt;img src="images/workshop_l02_parallel.png">
+  &lt;/a>
+&lt;/p>
 
-- SUT 车辆在没有速度或位置的明确限制的情况下行驶。
-- car1 车辆在没有速度的明确限制的情况下行驶，但在位置上有一个相对的限制：在场景开始时至少比 SUT 车辆前进 10 米。
+在包含并行运算符的这种情况下，两个角色正在做以下事情：
 
-!!! 示例 "动手时间"
-    您现在可以使用以下命令多次执行场景：
+- SUT 在没有关于其速度或位置的明确约束的情况下行驶。
+- car1 在没有关于其速度的明确约束但在其位置上有一个相对约束：在场景开始时至少比 SUT 前进 10 米。
 
-    ```bash
-    foretify --load $FTX_WORKSHOP/l02_second_iter/ts_l02_parallel.osc \
-    --batch --seed 5 --crun 3 --work_dir $FTX_FM_WORKDIR/l02_second_iter/work1
-    ```
+!!! 示例 "实践时间"
+   
 
-    观察场景的展开方式。请注意，在本研讨会中，默认将 SUT 车辆设置为红色。您应该观察到绿色车辆在场景开始时始终领先于红色车辆，独立于具体的种子。
+接下来，您将使用_serial_运算符扩展示例场景。正如名称所示，位于_serial_运算符下的两个或多个块将依次执行。这引入了场景的隐含约束，保证了执行的物理连续性。
 
-### 串行运算符
-
-接下来，你将使用 _serial_ 操作符来扩展示例场景。顾名思义，位于 _serial_ 操作符下的两个或多个块将依次执行。这为场景引入了隐含的约束，确保执行的物理连续性。
-
-你也可以在 `$FTX_WORKSHOP/scenarios/serial_example.osc` 中找到这个示例：
+您也可以在`$FTX_WORKSHOP/scenarios/serial_example.osc`下找到此示例：
 
 <p align="center">
   <a href="images/workshop_l02_serial.png" target="_blank">
@@ -127,121 +118,117 @@ car1.drive() with:
   </a>
 </p>
 
-在这个同时包含了串行和并行操作符的场景中，两个角色正在执行一个包括两个阶段的场景：
+在此包含串行和并行运算符的场景中，两个参与者正在执行由两个阶段组成的场景：
 
-- **phase1**：与之前的示例类似，但这次车辆1被限制在与系统下测试（SUT）相同的车道上行驶，并且在这个阶段内最多减速 20 公里/小时。此外，此时的持续时间范围为 2 到 6 秒。
-- **phase2**：在这个阶段，车辆1只能在最多增加 20 公里/小时的速度限制下行驶。
+- **phase1**：这与先前的示例类似，但这次car1被限制在与SUT相同的车道上行驶，并在该阶段期间将其速度降低最多20公里/小时。此外，持续时间现在为2到6秒。
+- **phase2**：在此阶段中，仅限制car1将其速度提高最多20公里/小时。
 
-**phase1** 和 **phase2** 是 OSC2 中用作轻松引用场景不同部分的标签。
-在后续的实验中，你将更多地了解关于标签的内容。
+**phase1**和**phase2**是在OSC2中用于轻松引用场景不同部分的标签。您将在以后的实验中了解更多关于标签的内容。
 
-使用串行操作符总是引入一些隐含的约束，以下是针对这个示例列出的部分隐含约束：
+使用串行运算符始终会引入一些隐含约束，其中一些列在下面的示例中：
 
-- _phase2_ 开始时刻与 _phase1_ 结束时刻相同。
-- _car1_ 和 _sut_ 在 _phase2_ 开始时的速度等于它们在 _phase1_ 结束时的速度。
-- _car1_ 和 _sut_ 在 _phase2_ 开始时的位置等于它们在 _phase1_ 结束时的位置。
+- _phase2_从_phase1_结束的同时开始。
+- _car1_和_sut_在_phase2_开始时的速度等于它们在_phase1_结束时的速度。
+- _car1_和_sut_在_phase2_开始时的位置等于它们在_phase1_结束时的位置。
 
-Foretify 会自动处理隐含约束的解决，确保在整个场景中始终保持物理连续性，而无需你进行手动管理。
+隐含约束的解决由Foretify自动处理，确保在整个场景中保持物理连续性，而无需您进行管理。
 
-```markdown
 !!! Example "操作时间"
-    您现在可以使用以下命令几次执行该场景：
+    您现在可以使用以下命令执行场景几次：
 
     ```bash
     foretify --load $FTX_WORKSHOP/l02_second_iter/ts_l02_serial.osc \
     --batch --seed 3 --crun 3 --work_dir $FTX_FM_WORKDIR/l02_second_iter/work1
     ```
 
-    观察场景的展开过程。请记住，在本次工作坊中，默认将系统单元测试设置为红色。您应该观察到在场景开始时，绿色车辆总是领先于红色车辆。然后它会减速并再次加速，这与特定种子无关。
+    观察场景的展开方式。请记住，在本次研讨会中，默认情况下将SUT设置为红色。您应该观察到绿色汽车始终在场景开始时领先于红色汽车。然后它会减速并再次加速，与特定的种子无关。
 
+### 场景重用
 
-### 场景复用
+在本实验室中，您将开始编写自己的OSC2代码。您将实现的场景是“插入和减速”。一辆汽车在SUT前面插入，然后开始减速。
 
-在本实验中，您将开始编写自己的 OSC2 代码。您将要实现的场景是“插入并减速”。一辆车在系统单元测试前面插入，然后开始减速。
+OSC2的主要优点之一是基础场景的可重用性，作为更复杂场景的构建块，这在创建新的更复杂场景时节省资源。
 
-OSC2 的主要优点之一是可以将基础场景重复使用，作为构建更复杂场景的组成部分，这在创建新的更复杂场景时节省了资源。
+您正在实现的场景由两个阶段组成：插入阶段和减速阶段。您将根据之前学习的内容开始实现这两个阶段。
 
-您正在实现的场景包括两个阶段：插入阶段和减速阶段。您将根据之前章节学到的内容，首先实现这两个阶段。
-
-#### 创建 _cut_in_and_slow_ 场景和 ODD 拓扑规范
+#### 创建_cut_in_and_slow_场景和ODD拓扑规范
 
 !!! Example "操作时间"
-    首先通过以下命令使用代码编辑器打开 `cut_in_and_slow_l02.osc`：
+    首先使用以下命令打开`cut_in_and_slow_l02.osc`：
 
     ```bash
     code $FTX_WORKSHOP/l02_second_iter/cut_in_and_slow_l02.osc
     ```
 
-通过查看代码，您可以看到第一行的导入语句导入了在实验 1 中使用的相同场景 (`cut_in_l01.osc`)。
+通过查看代码，您可以看到第一行的导入语句导入了在实验室1中使用的相同场景（`cut_in_l01.osc`）。
 
-为了重复使用插入场景，您首先需要创建 _cut_in_and_slow_ 场景的结构。
+为了重用插入场景，您首先需要创建_cut_in_and_slow_场景的结构。
+
+```Chinese
+!!! 示例 "实操时间"
+现在你可以尝试编辑`cut_in_and_slow_l02.osc`文件，添加所需的代码来执行切入和减速操作。
+由于我们还没有介绍如何实施减速，请专注于切入和行驶场景，车辆在切入后继续移动。请记住，OSC2是基于缩进的语言，Foretify工具需要使用空格（而不是制表符）作为缩进方法。
+
+!!! 小贴士
+代码应首先执行`cut_in_l01.osc`中定义的切入操作，然后进行减速。你可以使用稍后将解释的修饰符来实现减速。目前先尝试构建操作的不同阶段。
+
+??? 解决方案 "解决方案 - 点击此处"
+ ```osc linenums="1"
+ 方案 sut.cut_in_and_slow:
+  车辆1: 交通工具
+  方向: av_side
+
+  连续执行():
+   切入: cut_in_l01(车辆1: 车辆1, 方向: 方向)
+   减速: 并行(持续时间:[2..5]秒, 重叠:相等):
+    sut.car.drive()
+    车辆1.drive()
+ ```
+
+以上解决方案代码负责以下内容：
 ```
 
-```markdown
-!!! Example "Hands-on Time"
-    您现在可以尝试通过编辑 `cut_in_and_slow_l02.osc` 文件来添加执行剪入和减速所需的代码。
-    由于我们还没有讲解如何实现减速，请专注于剪入和驾驶场景，其中汽车在剪入后继续移动。请记住，OSC2 是基于缩进的语言，而 Foretify 工具要求使用空格（而非制表符）作为缩进方式。
-
-!!! tip
-    代码应首先执行 `cut_in_l01.osc` 中定义的剪入操作，然后再进行减速。您可以使用稍后会解释的修饰符来实现减速。现在尝试结构化机动的不同阶段。
-
-??? Solution "解决方案 - 点击这里"
-    ```osc linenums="1"
-    scenario sut.cut_in_and_slow:
-        car1: vehicle
-        side: av_side
-
-        do serial():
-            cut_in: cut_in_l01(car1: car1, side: side)
-            slow: parallel(duration:[2..5]second, overlap:equal):
-                sut.car.drive()
-                car1.drive()
-    ```
-
-上述解决方案代码负责以下内容：
-```
-
-- 已创建场景_sut.cut_in_and_slow_。
-- 已实例化两个对象_car1_和_side_。它们分别属于预定义类型_车辆_和_av_side_。
-- 在_do serial()_语句之后，定义了两个阶段，这两个阶段将按顺序进行：
-    - 标记为_cut_in_的第一个阶段：该阶段简单地调用了第一行导入的场景_cut_in_l01_。在这里，为_cut_in_and_slow_实例化的对象_car1_和_side_作为参数传递给_cut_in_l01_。注意如何将先前定义的场景作为更复杂场景的“构建模块”进行调用，这是一个非常强大的功能。
-    - 标记为_slow_的第二个阶段：在这里，使用了并行运算符，并且持续时间设置在2至5秒的范围内。
+- 场景_sut.cut_in_and_slow_已创建。
+- 两个对象_car1_和_side_已实例化。它们分别是预定义类型_vehicle_和_av_side_。
+- 在_do serial()_语句之后，定义了两个按顺序发生的阶段：
+  - 标记为_cut_in_的第一个阶段：该阶段简单地调用在第一行导入的场景_cut_in_l01_。在这里，为_cut_in_and_slow _实例化的对象_car1 和 _side__作为参数传递给_cut_in_l01__。请注意我们如何将先前定义的场景称为更复杂场景的“构建块”。这是一个非常强大的功能。
+  - 标记为_slow 的第二个阶段：这里使用并行操作符，并将持续时间设置在2到5秒之间。
 
 !!! 注意
-    目前在第二阶段中，SUT和car1都在行驶。稍后您将添加额外的约束条件，以确保car1减速。
+ 目前在第二阶段，SUT和car1都只是驾驶。稍后您将添加额外约束以确保car1减速。
 
-!!! 示例“实际操作时间”
-    保存后，运行刚刚创建的几次执行，使用以下命令：
+!!! 示例 “动手时间”
+ 保存后，请运行刚刚创建的内容几次执行以下命令：
 
-    ```bash
-    foretify --load $FTX_WORKSHOP/l02_second_iter/ts_l02.osc \
-    --work_dir $FTX_FM_WORKDIR/l02_second_iter/workdir2 --seed 5 \
-    --batch --crun 2
-    ```
+ ```bash
+ foretify --load $FTX_WORKSHOP/l02_second_iter/ts_l02.osc \
+ --work_dir $FTX_FM_WORKDIR/l02_second_iter/workdir2 --seed 5 \
+ --batch --crun 2
+ ```
 
-    观察场景，它应该类似于原始的变道场景，其中包括另一个部分，两个参与者只是在行驶。
+ 观察场景。它应该类似于原始变道情景，并包括两位演员仅仅是在驾驶中的额外部分。
 
 !!! 信息
-    能够重用、组合和混合新场景中的现有场景，极大地减少了编写新场景所需的工作量。每个场景都成为一个基本单元，您可以将其与其他现有单元组合，以创建更复杂的场景，其中强加的约束条件合并在一起。
+ 能够重用、组合和混合现有情景大大地减少了编写新情景所需的工作量。每个情境成为一个基本单元，您可以与其他现有单元组装起来创建更加复杂且融合了施加约束条件新情境。
 
-结果方案的可变性是其基本元素可变性的产物。这一特点提高了搜索新错误的效率，因为所有可能的组合都可以纳入考虑范围。
+可变性场景的结果是其基本元素的可变性产物。这个特性提高了搜索新漏洞的效率，因为所有可能的组合都可以考虑进去。
 
-到目前为止，你实施的只是一个 _cut_in_and_drive_ 的场景。现在，你将学习如何添加到 _slow_ 部分以使 _car1_ 减速所需的修改器。
+到目前为止，你所实现的只是一个“插入并驾驶”的场景。现在你将学习如何添加到“慢速”部分的修饰符，以使“car1”减速。
 
-#### _drive()_ 运动场景的修改器
+#### “drive()”运动场景的修饰符
 
-接下来，你将进一步调整场景，使 _car1_ 在 _slow_ 阶段减速。为了做到这一点，你需要在 _drive()_ 运动场景中引入一些额外的修改器。这些修改器将影响 _car1_ 和 _sut_ 的速度和车道。
+接下来，你将进一步塑造场景，并在“慢速”阶段使“car1”减速。为此，你需要在“drive()”运动场景上引入一些额外的修饰符。这些修饰符将作用于“car1”和“sut”的速度和车道。
 
-这并不意味着 OSC2 只允许在演员的速度或车道上使用修改器。还有许多其他修改器可用于约束，例如，车辆相对于另一个演员的位置或其加速度，就像串行和并行操作符的基本示例中那样。
+这并不意味着OSC2允许的唯一修饰符是演员的速度或车道。还有许多其他修饰符可以用于限制，例如，车辆相对于另一个演员的位置或其加速度，就像串行和并行运算符的基本示例一样。
 
-请注意，OSC2 中写入的每个阶段都带有预定义的 "_start_" 和 "_end_" 事件。这就是为什么在定义新的修改器时可以使用这些事件。
+请注意，OSC2中编写的每个阶段都带有预定义的“start”和“end”事件。这就是为什么在定义新的修饰符时可以使用这些事件。
 
-##### _change_speed_ 修改器
+##### “change_speed”修饰符
 
-为了实现一个 cut_in_and_slow 场景，我们需要使用 _change_speed_ 修改器。_change_speed_ 通过给定的数值来改变演员的速度，该数值可以是正值或负值（分别表示加速或减速）。当你想要控制与当前段开始时的车辆速度相对的速度增加或减少时，这一功能就非常有用。
+为了实现插入并减速的场景，我们需要使用“change_speed”修饰符。“change_speed”通过给定的量（可以是正值或负值（分别加速或减速））来改变演员的速度。当你想要控制相对于当前段开始时的车辆速度的速度增加或减少时，这非常有用。
 
-!!! 例子 "动手时间"
-    再次用代码编辑器打开 `$FTX_WORKSHOP/l02_second_iter/cut_in_and_slow_l02.osc` 并按以下方式修改场景：
+!!! 例子 "实践时间"
+    再次使用代码编辑器打开`$FTX_WORKSHOP/l02_second_iter/cut_in_and_slow_l02.osc`，并按以下方式修改场景：
 
 ```osc linenums="1"
 import "$FTX_WORKSHOP/scenarios/cut_in_l01.osc"
@@ -264,131 +251,118 @@ scenario sut.cut_in_and_slow:
         log("@slow.end car1 speed=$(car1.state.speed)")
 ```
 
-新增内容为何？
+什么被添加了？
 
-该示例介绍了在第14行引入的_change_speed_修改器，该修改器限制_车辆1_的速度在_slow_阶段的开始和结束之间至少减少15千米每小时。这种减速完成了切入和减速场景。
+该示例在第14行引入了一个_change_speed_修饰符，它将_car1_的速度限制为在名为_slow_的阶段开始和结束之间至少减少15 kph。这种减速完成了切入和减速的情景。
 
 !!! 注意
-    你注意到了吗？我们再次使用了_run_mode: best_effort_，但这次作为修改器的内联参数。我们这样做是因为该场景将被计划为与模拟器无关，这意味着模拟器可能以意想不到的方式限制车辆的减速。在这种情况下，我们不希望由于不完整的场景而导致运行失败。
+    你注意到了吗？我们再次使用了_run_mode: best_effort_，但这次作为修饰符的内联参数。我们这样做是因为该场景将被计划为模拟器不可知，这意味着模拟器可能以意外的方式限制车辆的减速。在这种情况下，我们不希望由于不完整的场景而导致运行失败。
 
-!!! 例子 "动手时间"
-    保存后，使用以下命令运行几次执行：
+!!! 示例 "动手时间"
+    保存后，使用以下命令运行几个执行：
 
     ```bash
     foretify --load $FTX_WORKSHOP/l02_second_iter/ts_l02.osc \
     --work_dir $FTX_FM_WORKDIR/l02_second_iter/workdir2 --batch --crun 5
     ```
 
-```markdown
-可以观察场景如何展开并查看日志消息。它们是否符合你的预期？
+你可以观察情况是如何发展的，并查看日志消息。它们是否符合你的预期？
 
-检查最后一条日志消息。由于刚刚添加的限制条件，car1 的速度应该至少比起始速度慢15公里每小时。
+检查最后一条日志消息。由于刚刚添加的限制条件，car1的速度应至少比起始速度慢15公里/小时。
 
-!!! Info
-    使用 change_speed 修饰器，你可以指定速度增加或减少的具体数值。
+通过change_speed修饰符，您只需指定速度增加或减少的数量。
 
-    这是一个强大的功能，可以提高给定场景的抽象级别。
+这是一个强大的功能，可以提高给定情景的抽象级别。
 
-### 添加新阶段
+### 添加一个新阶段
 
-!!! Example "实践时间"
-    在 _do serial_ 中增加一个名为 _speed_up_ 的阶段（建议持续时间为3到5秒），在这个阶段中，_car1_ 将保持其车道并加速至比之前快至少15公里每小时的速度。与降速一样，速度增加有时会受到模拟器和道路曲率等外部因素的限制。在这种情况下，我们不希望场景失败，但会接受结果速度的变化。可以通过将 _change_speed_ 修饰器的 _run_mode_ 设置为 _best_effort_ 来定义这一点。
+在_do serial_中添加另一个名为_speed_up_（建议持续时间为3到5秒）的阶段，在此阶段中，_car1_将保持车道并加速至比之前快至少15公里/小时的速度。与降速一样，速度增加有时会受到模拟器和道路曲率等外部因素的限制。在这种情况下，我们不希望情景失败，而是将接受产生的速度变化。我们可以通过将_change_speed_修饰符的_run_mode_设置为_best_effort_来定义这一点。
 
-    包括一些日志消息以改善调试过程。
+包括一些日志消息以改善调试。
 
-    保存后，使用以下命令再次运行测试：
+保存后，使用以下命令运行另一个测试：
 
-    ```bash
-    foretify --load $FTX_WORKSHOP/l02_second_iter/ts_l02.osc \
-    --work_dir $FTX_FM_WORKDIR/l02_second_iter/workdir2  --run --gui
-    ```
-??? Solution "解决方案 - 点击这里"
-    ```osc linenums="1"
-    import "$FTX_WORKSHOP/scenarios/cut_in_l01.osc"
-```
+```bash
+foretify --load $FTX_WORKSHOP/l02_second_iter/ts_l02.osc \
+--work_dir $FTX_FM_WORK
 
-```markdown
-Translate into Chinese:
-
-    do serial():
-        log("@cut_in.start car1 speed=$(car1.state.speed)")
-        cut_in: cut_in_l01(car1: car1, side: side)
-        log("@cut_in.end car1 speed=$(car1.state.speed)")
-        log("@slow.start car1 speed=$(car1.state.speed)")
-        slow: parallel(duration:[2..5]second, overlap:equal):
-            sut.car.drive() with:
-                keep_lane()
-            car1.drive() with:
-                change_speed(-[15..]kph)
-                keep_lane()
-        log("@slow.end car1 speed=$(car1.state.speed)")
-        log("@speed_up.start car1 speed=$(car1.state.speed)")
-        speed_up: parallel(duration:[3..5]second, overlap:equal):
-            sut.car.drive() with:
-                keep_lane()
-            car1.drive() with:
-                cs: change_speed([15..]kph, run_mode: best_effort)
-                keep_lane()
-        log("@speed_up.end car1 speed=$(car1.state.speed)")
-    ```
-
-### 如何使用 Foretify 检查运行情况
-
-在开发或审查场景时，您需要能够检查运行情况。Foretify 提供了一个集成的场景可视化工具，您在上一个实验中已经探索过。现在您将探索一些更高级的功能，进一步帮助您。
-
-有许多方法可以检查运行情况。接下来，您将看到一些广泛使用的方法：
-
-- 使用 _log()_ 消息和 Foretify 日志文件。
-- 使用跟踪功能以及可视化工具。
+执行序列（）：
+    记录（“@cut_in.start car1 speed = $（car1.state.speed）”）
+    cut_in：cut_in_l01（car1：car1，side：side）
+    记录（“@cut_in.end car1 speed = $（car1.state.speed）”）
+    记录（“@slow.start car1 speed = $（car1.state.speed）”）
+    slow：parallel（duration：[2..5]秒，overlap：equal）：
+        sut.car.drive（）with：
+            keep_lane（）
+        car1.drive（）with：
+            change_speed（- [15..]kph）
+            keep_lane（）
+    记录（“@slow.end car1 speed = $（car1.state.speed）”）
+    记录（“@speed_up.start car1 speed = $（car1.state.speed）”）
+    speed_up：parallel（duration：[3..5]秒，overlap：equal）：
+        sut.car.drive（）with：
+            keep_lane（）
+        car1.drive（）with：
+            cs：change_speed（[15..]kph，run_mode：best_effort）
+            keep_lane（）
+    记录（“@speed_up.end car1 speed = $（car1.state.speed）”）
 
 
-#### 使用 Foretify 日志文件检查运行情况
+### 如何在Foretify中检查运行情况
 
-您可以通过审阅 Foretify 日志文件来检查运行情况。
+在开发或审查场景时，您需要能够检查运行情况。Foretify提供了一个集成的场景可视化器，您在之前的实验中已经探索过。现在，您将探索一些更高级的功能，以帮助您进一步。
 
+有许多方法可以检查运行情况。接下来，您将了解一些广泛使用的方法：
+
+- 使用_log（）_消息和Foretify日志文件。
+- 与可视化器一起使用跟踪。
+
+
+#### 使用Foretify _log文件_检查运行情况
+
+您可以通过查看Foretify _log文件_来检查运行情况。
 
 ```markdown
 !!! Example "实际操作时间"
-     使用代码编辑器打开日志文件，并在日志中搜索在前几节中介绍的消息。最近几次运行的日志可以在 `$FTX_FM_WORKDIR/l02_second_iter/workdir2/runs/```timestamp```/run.log` 下找到，或者在 `$FTX_FM_WORKDIR/l02_second_iter/workdir2/logs/```timestamp```` 中找到。
+  使用代码编辑器打开日志文件，并搜索在前几节中介绍过的消息。最近几次运行的日志可以在$FTX_FM_WORKDIR/l02_second_iter/workdir2/runs/```timestamp```/run.log中找到，或者在$FTX_FM_WORKDIR/l02_second_iter/workdir2/logs/```timestamp```中找到。
 
-#### 使用跟踪和可视化工具检查运行状态
+#### 使用跟踪和可视化工具检查运行
 
-跟踪使您能够绘制变量随时间的变化情况。这个功能在与 Foretify 可视化工具相结合时非常有用。您可以在 OSC2 方案本身中定义自定义跟踪，但在本练习的范围内，您将使用为执行者提供的预定义跟踪。
+跟踪功能可以让你绘制变量随时间的图表。当与Foretify Visualizer工具结合使用时，这个功能非常有用。你可以在OSC2场景中自定义跟踪，但是在本练习范围内，你将使用为演员预定义的跟踪。
 
 !!! Example "实际操作时间"
-   在关闭打开的 Foretify 会话后，以 GUI 模式再次打开 Foretify，并加载创建的最后一个场景，使用以下命令。
+ 关闭已经打开的Foretify会话后，再次以GUI模式打开Foretify，并加载上次创建的场景，请使用以下命令：
 
-    ```bash
-    foretify --load $FTX_WORKSHOP/l02_second_iter/ts_l02.osc \
-    --work_dir $FTX_FM_WORKDIR/l02_second_iter/workdir2 --gui
-    ```
+ ```bash
+ foretify --load $FTX_WORKSHOP/l02_second_iter/ts_l02.osc \
+ --work_dir $FTX_FM_WORKDIR/l02_second_iter/workdir2 --gui
+ ```
 
-    通过点击右上角的 **Terminal** 按钮或按 _t_ 键打开 Foretify 终端。
+ 通过点击右上角的**Terminal**按钮或按下_t_键来启动Foretify终端。
 
-    默认情况下，多个跟踪是活跃的。您可以通过输入 ```trace``` 命令来查看活跃的跟踪。
+ 默认情况下，多个跟踪是激活状态。你可以通过输入```trace```命令来查看激活状态下的跟踪。
 
-    其他有用的跟踪命令包括：
+ 其他有用的跟踪命令包括：
 
-    - ```trace --help```: 查看所有跟踪命令选项
-    - ```trace --off```: 停用所有跟踪
-    - ```trace *.*```: 跟踪给定通配符层次结构下的所有项目
+ - ```trace --help```: 查看所有可用的跟踪命令选项
+ - ```trace --off```: 关闭所有跟踪
+ - ```trace *.*```: 跟踪给定通配符层级下的所有项目
 
-    <p align="center">
-        <a href="images/l02_traces.png" target="_blank">
-            <img src="images/l02_traces.png">
-        </a>
-    </p>
+ <p align="center">
+  <a href="images/l02_traces.png" target="_blank">
+  <img src="images/l02_traces.png">
+  </a>
+ </p>
 
-    关闭所有跟踪，并激活仅绘制车辆速度的跟踪，使用以下命令：
+ 禁用所有跟踪并只激活那些绘制车辆速度图表的轨迹，请使用以下命令：
 
-    ```bash
-    trace --off *.*
-    trace *.speed
-    ```
-```
+ ```bash
+ trace --off *.*
+ trace *.speed
+ ```
 
-```markdown
-这应该显示被追踪的两辆车的速度，如下所示：
+
+这应该显示正在跟踪的两辆车的速度，如下所示：
 
 <p>
   <a href="images/l02_trace_speed.png" target="_blank">
@@ -396,7 +370,7 @@ Translate into Chinese:
   </a>
 </p>
 
-运行测试（可以在Foretify终端中使用“run”命令或使用GUI按钮）。一旦测试完成，您可以切换到下面显示的**Traces**选项卡：
+运行测试（可以在Foretify终端中使用“run”命令或GUI按钮）。完成测试后，您可以切换到下图所示的**Traces**选项卡：
 
 <p>
   <a href="images/l02_show_traces.png" target="_blank">
@@ -404,7 +378,7 @@ Translate into Chinese:
   </a>
 </p>
 
-现在，您可以通过单击和拖动时间导航器（橙色圈出）来选择轨迹上的不同时间戳。这将使可视化器移动到相应的时间戳，以便您可以看到模拟中在那个时间戳发生了什么。
+现在，您可以通过单击和拖动时间导航器（用橙色圈圈标出）来选择跟踪上的不同时间戳。这将使可视化器移动到相应的时间戳，以便您可以看到在该时间戳模拟中发生了什么。
 
 <p>
   <a href="images/l02_trace_select_time.png" target="_blank">
@@ -412,9 +386,9 @@ Translate into Chinese:
   </a>
 </p>
 
-#### 使用Traces间隔检查运行
+#### 使用跟踪间隔检查运行
 
-现在您有一个包含连续发生的多个阶段的场景，您将会欣赏到Foretify GUI中显示的间隔带来的益处，这些间隔准确告诉您每个阶段何时开始和结束，您可以在下面的屏幕截图中看到：
+现在，您有一个具有更多连续发生的阶段的场景，您将欣赏到Foretify GUI中显示的间隔的好处，这些间隔告诉您每个阶段何时开始和结束，如下所示：
 
 <p align="center">
   <a href="images/l02_intervals.png" target="_blank">
@@ -422,126 +396,124 @@ Translate into Chinese:
   </a>
 </p>
 
-## 覆盖范围收集
+## 覆盖率收集
 
-度量驱动的验证与验证（V&V）是一个过程，通过度量定期测量验证结果，以便可以根据收集的度量做出决策。这带来了许多好处。度量驱动的V&V：
-```
+度量驱动的验证和验证（V＆V）是一种定期使用度量衡量验证结果的过程，以便可以根据收集的度量衡量做出决策。这带来了许多好处。度量驱动的V＆V：
 
-- 从 V&V 状态评估中消除了人为错误 —— V&V 状态是客观的
-- 允许工程师调整决策并将精力集中在客观的度量上
-- 通过从一次迭代到下一次的即时反馈加速 V&V 过程
-- 提供跨决策层次和细节层次的透明度 —— 从工程师到首席执行官，从 SUT 速度到整体指标分数
-- 使 V&V 过程不受 SUT 行为的影响 —— 指标反映了实际发生的情况，而不是工程师期望发生的情况
-- 对规模不敏感 —— V&V 与工作量的大小自然匹配
-- 允许评估 SUT 的质量，也就是说，可以基于客观统计数据做出 GO/NO-GO 决策
+- 消除了V&V状态评估中的人为错误，使V&V状态客观化。
+- 允许工程师调整决策并将精力集中在客观度量上。
+- 通过从一次迭代到下一次的即时反馈加速了V&V过程。
+- 提供了决策层次和细节层次的透明度，从工程师到CEO，从SUT速度到整体指标得分。
+- 使V&V过程对SUT的行为不敏感，指标反映了真实发生的事情，而不是工程师预期发生的事情。
+- 对规模不敏感，V&V随着工作量的增加自然扩展。
+- 允许评估SUT的质量，即可以基于客观统计数据做出GO/NO-GO决策。
 
-您可能已经注意到，基于度量的验证和验证与基于测试的验证和验证有所不同，在基于测试的验证和验证中，进展是通过通过测试的数量来衡量的。可以说，正是由于以上原因，与基于测试的 V&V 相比，使用基于度量的 V&V 带来了许多优势。
+正如您可能已经注意到的那样，基于指标的验证和验证与基于测试的验证和验证不同，其中进展是通过通过测试的数量来衡量的。可以说，由于上述原因，与基于测试的V&V相比，使用基于指标的V&V带来了许多优势。
 
-Foretellix 解决方案通过覆盖度量来补充传统的关键绩效指标，这是本节的主题。这意味着您仍然可以使用传统的方式来评估质量，同时添加新的度量标准以增加验证目标定义的精确度。
+Foretellix解决方案通过覆盖度指标来补充传统的KPI，这是本节的主题。这意味着您仍然可以使用传统的方法来评估质量，同时添加新的指标以增加验证目标定义的精度。
 
-### 什么是覆盖度？
+### 什么是覆盖率？
 
-工程师定义验证度量来以可衡量的方式描述验证目标。覆盖度定义指定必须进行测试的属性/参数值。例如，假设为了证明 SUT 在切入场景中的行为是正确的，您需要确保以下两个参数在给定的时间点内在给定范围内运行：
+工程师定义验证指标以可衡量的方式描述验证目标。覆盖率定义指定必须执行哪些属性/参数值。例如，假设为了证明SUT在切入场景中的行为正确，您需要确保在给定时间点内执行以下两个参数的给定范围：
 
-| 覆盖项       | 范围     | 桶       | 单位 | 时间       |
-|--------------|----------|----------|------|------------|
-| sut_speed    | [0..200]kph | 每 10    | kph  | 切入结束时 |
-| car1_distance| [0..50]m   | 每 5     | m    | 切入结束时 |
+| 覆盖项目   | 范围      | 桶   | 单位 | 何时         |
+|--------------|-------|--------|----|-------------|
+| sut_speed    | [0..200] 公里/小时 | 每10 | 公里/小时 | 切入结束    |
+| car1_distance| [0..50] 米       | 每5  | 米       | 切入结束    |
 
-我们为什么选择 [0..200] 和 [0..50] 的范围？答案是这些范围是基于工程规范定义的，该规范捕捉了系统的工作方式以及它的优缺点。例如，如果一个覆盖项被建模为整数，那么它会有 2^32 个值的值空间。但从验证的角度来看，并不是所有这些值都是有效或有用的。因此，上表指定了所谓的“有效值空间”，将样本收集限制在相关值内。限制范围确保了涵盖有趣的值，而不浪费验证资源在不相关或无效的空间上，比如一个 NPC 以超音速驾驶。
+为什么我们选择了范围[0..200]和[0..50]？答案是这些范围是根据捕捉系统运行方式以及其优势和劣势的工程规范定义的。举例来说，如果一个覆盖项目被建模为整数，它将有2^32个值的值空间。并非所有这些值都是从验证角度来看有效或有用的。因此，上面的表格指定了所谓的“有效值空间”，将样本收集限制在仅相关值上。限制空间确保覆盖有趣值的范围，而不会浪费验证资源在无关或无效空间上，比如NPC以超音速速度驾驶。
 
-限制覆盖项的值空间仅限于指定的有效值是 V&V 工程师的决策。即使在合法的值范围内，也可以细化并创建称为桶的小范围（在本例中，分别为 10kph 桶和 5m 桶）。这些桶的创建是基于假设桶内所有值的行为和质量影响相似。_时间_ 参数指定了采样点——即参数值保存到覆盖数据库中的时间点。
+将覆盖项目的值空间限制为指定的有效值是V&V工程师的决定。即使在合法值范围内，您也可以细化并创建称为桶的较小范围（在本例中分别为每10公里/小时和每5米）。桶是在假设对于桶中所有值的行为和质量影响相似的情况下创建的。_when_参数指定采样点&mdash;参数的值何时保存到覆盖数据库中。
 
-OSC2 允许在给定场景中定义覆盖项。例如，要为 sut.cut_in 场景定义表格中的第一个覆盖项，可以编写以下代码：
+OSC2
 
 ```osc linenums="1"
-# 这里我们扩展了cut_in场景
-extend sut.cut_in:
-    # 这里我们决定何时取样和取什么信号
-    var sut_speed := sample(sut.car.state.speed, @cut_in.end)
-    cover(name: sut_speed,
-            # 覆盖项的描述
-            text : "汽车刚切入时的绝对速度（以km/h为单位）",
-            # 覆盖项代表的物理单位
-            unit : kph,
-            # 相关值的范围，范围外的值会被忽略
-            range : [0..200],
-            # 桶的大小（例如，[10..20]，[20..30]等）
-            every : 10)
+# 这里我们扩展了 cut_in 场景
+extend sut.cut_in:           
+ # 在这里我们决定何时进行采样以及采集什么信号
+ var sut_speed := sample(sut.car.state.speed, @cut_in.end)     
+ cover(name: sut_speed,
+  # 对覆盖项的描述
+  text : "cut_in 结束时sut的绝对速度 (单位：km/h)", 
+  # 覆盖项代表的物理单位   
+  unit : kph,
+  # 相关数值范围，范围之外的所有内容都将被忽略          
+  range : [0..200],
+  # 桶的大小（例如 [10..20], [20..30] 等）         
+  every : 10)           
 ```
 !!! tip
-  
-    请参阅[cover()和record()参数](../osc_lang/osclang_behavior_monitoring.md#cover-and-record-parameters)以获得`cover`的语法和定义。
+ 
+ 查看[cover()和record()参数](../osc_lang/osclang_behavior_monitoring.md#cover-and-record-parameters)获取`cover`语法和定义。
 
-现在假设上述两个覆盖项目都已经实施，并且运行了77次模拟。结果将类似于：
+现在假设上述两个覆盖项已经实现，并且进行了77次模拟。结果如下：
 
 <p align="center">
-  <a href="images/workshop_lab2_61_cover_item_sample_1.png" target="_blank">
-    <img src="images/workshop_lab2_61_cover_item_sample_1.png">
-  </a>
+ <a href="images/workshop_lab2_61_cover_item_sample_1.png" target="_blank">
+ <img src="images/workshop_lab2_61_cover_item_sample_1.png">
+ </a>
 </p>
 
 <p align="center">
-  <a href="images/workshop_lab2_61_cover_item_sample_2.png" target="_blank">
-    <img src="images/workshop_lab2_61_cover_item_sample_2.png">
-  </a>
+ <a href="images/workshop_lab2_61_cover_item_sample_2.png" target="_blank">
+ <img src="images/workshop_lab2_61_cover_item_sample_2.png">
+ </a>
 </p>
 
-你可以看到，并非所有的桶都被命中，这意味着覆盖项目并未完全覆盖。但覆盖了多少？覆盖项目的等级给出了填充水平。覆盖等级是对测试过程中遇到的所有情况的多维表示。
+你可以看到，并非所有的桶都被命中，这意味着覆盖项并没有完全覆盖。但是覆盖了多少？覆盖项的等级给出了填充水平。覆盖等级是所有测试中遇到的情况的多维表示。
 
-覆盖项的等级是一个百分比：覆盖了多少个项目值占总数的百分比。在这种情况下，覆盖率如下：
+覆盖项的等级是一个百分比：覆盖了多少个项目值占总数的百分比。在这种情况下，覆盖率为：
 
-- 信号生成系统（SUT）和NPC距离覆盖 - 23%：13个桶中有3个被命中（即，采样值位于桶范围内）
-- SUT速度覆盖 - 38%：13个桶中有5个被命中
+- sut-npc距离覆盖率-23％：13个桶中有3个被命中（即，采样值在桶范围内）
+- sut速度覆盖率-38％：13个桶中有5个被命中
 
-这意味着你需要继续运行模拟，直到获得100%的覆盖等级。如果一些桶没有被命中，你可以决定改变场景约束以针对不同值。
+这意味着您必须继续运行模拟，直到您获得100％的覆盖等级。如果某些桶未被命中，则可以决定更改场景的约束条件以针对不同的值。
 
-!!! 信息
-    基于覆盖率的验证（CDV）是一种被证明成功的方法论，被广泛应用作为各种领域的行业标准，在被测试设备非常复杂的情况下，特别是半导体行业。这种方法可以在产品上市前持续发现软件缺陷，避免极其昂贵的召回。
+!!! Info
+    覆盖驱动验证（CDV）是一种被证明成功的方法，被用作各种领域中高度复杂的测试设备的行业标准，特别是半导体行业。这种方法有助于在产品部署到市场之前不断发现错误，避免极其昂贵的召回。
 
-    Foretellix的专家们在半导体行业应用了20多年的CDV经验，为自动系统的V&V安全性提供解决方案。借助Foretellix的工具，使得CDV方法可以应用于自动驾驶车辆验证，V&V工程师可以有效地监控验证过程的状态。
+    Foretellix专家在半导体行业中应用了20多年的CDV经验，为自主系统的安全提供了V＆V解决方案。由于Foretellix工具使CDV方法适用于自动驾驶车辆验证，因此V＆V工程师可以应用一种经过验证的方法来有效地监视验证过程的状态。
 
-    基于覆盖率的验证方法代表了安全驱动验证方法的一个重要部分。
+    覆盖驱动验证代表了安全驱动验证方法的重要组成部分。
 
-### 如何定义覆盖项目
-
-```markdown
-当覆盖项不需要采样时（例如，它是场景的输入），可以定义如下：
-
-```osc linenums="1"
-    cover(name: aside, expression:side)
-```
-
-这将创建一个覆盖项，该覆盖项使用场景中的 _side_ 字段来开始 _cut in_ 段。一旦 _left_ 和 _right_ 的两个值均被触发，_side_ 项目的得分将达到100%（即完全覆盖）。如果只有其中一个值被触发，则项目的分数将为50%。
-
-当覆盖项需要采样时，可以定义如下：
-
-```osc linenums="1"
-    var rel_speed := sample(car1.state.speed - sut.car.state.speed, @cut_in.end)
-    cover(name: rel_speed,
-            text : "Relative speed cut_in end (in kph)",
-            unit : kph,
-            range : [-50..50],
-            every : 10)
-```
-
-如果参数是整数，覆盖空间就会很大（即2^32-1个值）。往往，并非所有整数值都是相关的。OSC2允许您像这个例子一样指定整数的合法范围（使用 _range_ 和 _every_）。
-
-_rel_speed_ 在 _cut_in.end_ 事件上进行抽样。此时的值与包含它的桶进行匹配，并保存。一旦一个桶中有样本，该桶的得分就达到100%。根据定义，只要至少有一个样本匹配桶的区间，桶的得分就达到100%。
-
-!!! 例子 "实践时间"
-    查看 `$FTX_WORKSHOP/l02_second_iter/cut_in_and_slow_l02_cov.osc` 中定义的覆盖项。您能认出并解释这些覆盖项的含义吗？请注意，在此处使用的 _map.abs_distance_between_positions_ 函数提供了两个位置之间的绝对距离。
-```
+### 如何定义覆盖项
 
 ```markdown
-由于您已经运行了几次，您可以使用以下命令将它们收集并上传到 Foretify Manager：
+当一个覆盖项不需要抽样（例如，它是场景的输入）时，可以定义如下：
+
+```osc linenums="1"
+ cover(name: aside, expression:side)
+```
+
+这将创建一个覆盖项，该覆盖项在 _cut in_ 段开始时使用场景的 _side_ 字段。只要击中 _left_ 和 _right_ 的两个值，该覆盖项的等级就会达到 100%（即完全覆盖）。如果仅有一个值被击中，则该项的等级为 50%。
+
+当一个覆盖项需要抽样时，可以定义如下：
+
+```osc linenums="1"
+ var rel_speed := sample(car1.state.speed - sut.car.state.speed, @cut_in.end)
+ cover(name: rel_speed,
+  text : "相对速度 cut_in 结束 (以公里/小时计)",
+  unit : kph,
+  range : [-50..50],
+  every : 10)
+```
+
+如果参数是整数，则其覆盖空间很大（即2^32-1个值）。通常，并非所有整数值都相关。OSC2 允许您像这个示例一样指定整数的合法范围（使用 _range_ 和 _every_）。
+
+_rel_speed_ 在事件 _cut_in.end_ 上进行抽样。此时的值将匹配包含它的桶并保存下来。一旦桶中有一个样本，该桶就会达到100% 的等级。根据定义，只要至少有一个样本与桶的区间匹配，则该桶就具有100% 的等级。
+
+!!! 示例 "实践时间"
+ 查看在 `$FTX_WORKSHOP/l02_second_iter/cut_in_and_slow_l02_cov.osc` 中所定义的覆盖项。你能认出并解释这些覆盖项代表什么吗？请注意，在此处使用了函数_map.abs_distance_between_positions_ 提供了两个位置之间的绝对距离。
+```
+
+由于您已经进行了几次运行，您可以使用以下命令将它们收集并上传到Foretify Manager：
 
 ```bash
 upload_runs ${FTX_FM_SERVER_ARGS} ${FTX_FM_LOGIN_ARGS} \
 --runs_top_dir $FTX_FM_WORKDIR/l02_second_iter/workdir2
 ```
 
-在使用命令 `fmanager` 打开 Foretify Manager 后，按照第1实验室学习的内容，为测试运行创建一个名为 _cut_in_and_slow_ 的新工作区。最终，您应该会看到与以下图片类似的内容（请注意，百分比可能会有所变化）：
+在使用命令`fmanager`打开Foretify Manager后，为测试运行创建一个名为_cut_in_and_slow_的新工作区，就像您在实验室1中学到的那样。最后，您应该看到类似于以下图像的内容（请注意，百分比可能会更改）：
 
 <p align="center">
   <a href="images/l02_vgarde_no_cross.png" target="_blank">
@@ -549,11 +521,11 @@ upload_runs ${FTX_FM_SERVER_ARGS} ${FTX_FM_LOGIN_ARGS} \
   </a>
 </p>
 
-检查工作区中的覆盖度指标。您应该会看到四个项目：aside、sut_speed、rel_speed 和 car1_distance。这四个覆盖度项目的覆盖等级分别是多少？整体 VGrade 是多少？
+检查工作区中的覆盖度指标。您应该有四个项目：aside、sut_speed、rel_speed和car1_distance。这四个覆盖项的覆盖度分数是多少？整体VGrade是多少？
 
-### 如何定义覆盖度交叉
+### 如何定义覆盖交叉
 
-交叉是两个或多个覆盖度项目的乘积，突出了项目之间的关系。一个交叉覆盖度项目的分桶是单个项目分桶的笛卡尔积。以上面的例子为例，SUT 速度和 SUT 到 NPC 距离的交叉看起来像这样：
+交叉是两个或多个覆盖项的乘积，突出了这些项之间的关系。交叉覆盖项的桶是各个项桶的笛卡尔积。考虑上面的例子，SUT速度和SUT到NPC距离的交叉看起来像这样：
 
 <p align="center">
   <a href="images/workshop_lab_5_cross_samples.png" target="_blank">
@@ -561,213 +533,208 @@ upload_runs ${FTX_FM_SERVER_ARGS} ${FTX_FM_LOGIN_ARGS} \
   </a>
 </p>
 
-样本出现在绿色单元格内。与覆盖度项目类似，交叉覆盖度的等级是一个百分比：共有169个分桶中的10个被覆盖了，即5.9%。
-```
+样本落在绿色单元格内。与覆盖项类似，覆盖交叉的分数是一个百分比：169个桶中有10个被覆盖，即5.9%。
 
-将以下文字翻译成中文：
+将以下内容翻译成中文：
 
-交叉的物理/法律价值空间是构成要素的物理/法律价值空间的笛卡尔积。鉴于此，工程师在设计交叉时必须小心谨慎，因为交叉空间的增长可能迅速达到难以填补的体积。
+The cross's physical/legal value space is the Cartesian product of the physical/legal value spaces of the component items. Given that, engineers have to be careful when designing crosses since a cross space can grow rapidly to volumes that are hard to fill.
 
-!!! 例子 "动手时间"
-     将以下交叉覆盖项添加到 _$FTX_WORKSHOP/l02_second_iter/cut_in_and_slow_l02_cov.osc_ 文件中：
+!!! Example "Hands-on Time"
+  Add the following cross coverage items to _$FTX_WORKSHOP/l02_second_iter/cut_in_and_slow_l02_cov.osc_:
 
-    ```osc linenums="1"
-        cover(sut_speed_x_rel_speed, items:[sut_speed, rel_speed])
-        cover(sut_speed_x_car1_distance, items:[sut_speed, car1_distance])
-    ```
+ ```osc linenums="1"
+  cover(sut_speed_x_rel_speed, items:[sut_speed, rel_speed])
+  cover(sut_speed_x_car1_distance, items:[sut_speed, car1_distance])
+ ```
 
-    保存后，使用以下命令运行几次执行：
+ After saving, run a few executions with the following command:
 
-    ```bash
-    foretify --load $FTX_WORKSHOP/l02_second_iter/ts_l02.osc \
-    --work_dir $FTX_FM_WORKDIR/l02_second_iter/workdir3  \
-    --batch --crun 5
-    ```
+ ```bash
+ foretify --load $FTX_WORKSHOP/l02_second_iter/ts_l02.osc \
+ --work_dir $FTX_FM_WORKDIR/l02_second_iter/workdir3 \
+ --batch --crun 5
+ ```
 
-    现在可以使用以下命令收集并上传运行结果到 Foretify Manager：
+ You can now collect and upload the runs to Foretify Manager using the following command:
 
-    ```bash
-    upload_runs ${FTX_FM_SERVER_ARGS} ${FTX_FM_LOGIN_ARGS} \
-    --runs_top_dir $FTX_FM_WORKDIR/l02_second_iter/workdir3
-    ```
+ ```bash
+ upload_runs ${FTX_FM_SERVER_ARGS} ${FTX_FM_LOGIN_ARGS} \
+ --runs_top_dir $FTX_FM_WORKDIR/l02_second_iter/workdir3
+ ```
 
-    使用命令 `fmanager` 打开 Foretify Manager 后，创建一个名为 _cut_in_and_slow2_ 的新工作区，利用你导入的新运行结果。你能辨别出新的覆盖交叉吗？检查交叉的分箱并注意它们与创建交叉的各个要素的相关性。
+ After opening Foretify Manager using the command, `fmanager`, create a new workspace called _cut_in_and_slow2_ using the new runs that you imported. Can you recognize the new coverage crosses? Inspect the bins (buckets) of the crosses and note how they correlate to the individual items that create the cross.
 
-## KPI 实施
 
-关键绩效指标（KPI）可以简单到度量自动驾驶汽车的表现的原始指标。其中可以包括与安全相关的KPI，如最短碰撞时间（min-TTC），以秒计量，与舒适性相关的KPI，例如最大减速度，以米/秒计量，等等。
+## KPI implementation
 
-请将以下内容翻译成中文：
+Key Performance Indicators (KPIs) can be as simple as raw metrics measured to see how well[sic] well[we need recheck here]	the AV performed. There can be safety-related KPIs such as min-Time-To-Collision (min-TTC), measured in seconds, comfort-related KPIs such as max-deceleration, measured in meter/seconds[sic], and so on.
 
-```markdown
-Lab 1 introduced the notion of KPI and you exercised one example. Now, to better understand how to implement a KPI, you will write a new KPI using the _collect_ construct. This KPI will capture the _time to collision_ at each time step and record its minimum value over the course of the scenario.
 
-We also want to _record_ the min value at the end of the scenario.
+实验1介绍了KPI的概念，并且您已经练习了一个例子。现在，为了更好地理解如何实施KPI，您将使用_collect_结构编写一个新的KPI。该KPI将在每个时间步骤捕获_碰撞时间_并记录其在整个场景中的最小值。
 
-In order to do this, you will need a collect_time() and a record() invocation with the following syntax: 
+我们还希望在场景结束时记录最小值。
+
+为了做到这一点，您需要使用以下语法进行collect_time()和record()调用：
 
     - collect_time
-        - exp: the expression to evaluate at each time step
-        - measure: a calculation step to apply to the collected data (e.g. min, max, mean)
+        - exp：在每个时间步骤评估的表达式
+        - measure：应用于收集数据的计算步骤（例如，最小值、最大值、平均值）
 
     - record
-        - expression: which variable or result of a formula to record
-        - unit: the unit of the value to record
-        - event: at which point in simulation time to record the value
-        - text: a message describing the meaning of the value
+        - expression：要记录的变量或公式的结果
+        - unit：要记录的值的单位
+        - event：在模拟时间的哪个点记录该值
+        - text：描述该值含义的消息
 
-The purpose of collect() is to define a performance metric or other data collection.
+collect()的目的是定义性能指标或其他数据收集。
 
-!!! tip 
-    
-    - You can add the new piece of code in the existing file: 
+!!! 提示
+
+    - 您可以将新的代码片段添加到现有文件中：
     ```bash
     code $FTX_WORKSHOP/l02_second_iter/cut_in_and_slow_l02_cov.osc 
 
     ```
-    - For defining the variable, you can have a look at the previous examples of declaring a variable.
-    - The method to access the TTC is called _get_ttc()_.
-    - The unit of measurement we want to use is second (s).
+    - 要定义变量，您可以查看之前声明变量的示例。
+    - 访问TTC的方法称为_get_ttc()_。
+    - 我们想要使用的测量单位是秒（s）。
 
-??? Solution "Solution - Click Here"
+??? 解决方案 "解决方案-点击这里"
 
     ```osc linenums="1"
     extend sut.cut_in_and_slow:
 
-        # Sample the time-to-collision KPI at each time step, get its min value and check if it is lower than the defined threshold
+        # 在每个时间步骤采样TTC KPI，获取其最小值，并检查是否低于定义的阈值
         min_ttc: collect_time(exp: sut.car.get_ttc(),
             measure: min)
 
-        # Define an event that can be used by record
+        # 定义一个可以被record使用的事件
         event sample_ttc is @end
-
-```
-
+    ```
 
 ```markdown
-# 在场景结束时记录收集构造的结果，以获取本次运行中的总最小 TTC
+# 在场景结束时记录聚合构造的结果，以获取本次运行中的总最小TTC
 
-    记录（min_ttc_kpi,
-            表达式: min_ttc.computed_result,
-            单位: s,
-            事件: sample_ttc,
-            文本: "最小碰撞时间 (TTC)")
-    ```
-!!! 例子 "实践时间"
-    保存后，使用更新的代码运行几次执行：
+record(min_ttc_kpi,
+  表达式: min_ttc.computed_result,
+  单位: 秒,
+  事件: 样本TTC,
+  文本: "最小碰撞时间（TTC）"
+)
+```
 
-    ```bash
-    foretify --load $FTX_WORKSHOP/l02_second_iter/ts_l02.osc \
-    --work_dir $FTX_FM_WORKDIR/l02_second_iter/workdir4 \
-    --batch --crun 3
-    ```
-    现在可以收集运行，并使用以下命令上传到 Foretify Manager：
+!!! 示例 "实操时间"
+保存后，使用更新后的代码运行几个执行：
 
-    ```bash
-    upload_runs ${FTX_FM_SERVER_ARGS} ${FTX_FM_LOGIN_ARGS} \
-    --runs_top_dir $FTX_FM_WORKDIR/l02_second_iter/workdir4
-    ```
-    现在可以在 Foretify Manager 中查看 KPI 结果。
+```bash
+foretify --load $FTX_WORKSHOP/l02_second_iter/ts_l02.osc \
+ --work_dir $FTX_FM_WORKDIR/l02_second_iter/workdir4 \
+ --batch --crun 3
+```
+
+现在可以收集这些运行并使用以下命令上传到Foretify Manager：
+
+```bash
+upload_runs ${FTX_FM_SERVER_ARGS} ${FTX_FM_LOGIN_ARGS} \
+ --runs_top_dir $FTX_FM_WORKDIR/l02_second_iter/workdir4
+```
+现在可以在Foretify Manager中查看KPI结果。
 
 ## 检查器实施
 
-### 了解和解决问题
-最主要的验证挑战之一是以最有效的方式确定系统正在运行是否正确。比如，您想知道系统是否：
+### 理解和解决问题
+其中一个主要的验证挑战是以最有效的方式确定SUT是否表现正确。例如，您想知道SUT是否：
 
-- 未达到法定的最低高速公路速度。
-- 未能与行人保持适当距离。
-- 偏离道路。
+- 没有达到法定高速公路速度最低要求。
+- 没有与行人保持适当距离。
+- 开车离开了道路。
 
-检查器是定义系统应该或不应该如何行为的 OSC2 实体。最简单的检查器定义了如果系统未能满足布尔条件，则会产生失败响应。
+检查器是定义SUT应该或不应该如何行为的OSC2实体。最简单的检查器会定义如果SUT未能满足布尔条件，则返回失败响应。
 
 ### 如何实施检查器
-```
 
-当你处理场景时，可能需要定义检查器来捕捉特定于你的SUT的问题行为或条件。现在你将尝试一个与实验1类似的新例子。在这个例子中，你将适应前一个练习中新编写的KPI：min_ttc。检查器的目的是确保在慢速阶段开始时，TTC不超过3秒。
+在处理场景时，您可能需要定义检查器来捕获与SUT特定的问题行为或条件有关的问题。现在，您将尝试一个类似于实验室1中示例的新示例。对于此示例，您将调整先前练习中新编写的KPI：min_ttc。检查器的目的是确保TTC在开始缓慢阶段时不超过3秒钟。
 
 编写检查器的步骤如下：
 
-1. 创建一个名为 _cut_in_and_slow_l02_checker.osc_ 的新文件。
-2. 创建一个新的 issue_kind 并称之为 safe_ttc。
-3. 为安全的TTC阈值类型定义一个新变量。
-4. 将安全的TTC阈值设置为3秒。
-5. 将 _cut_in_and_slow_l02_cov.osc_ 文件中的 _collect_time_ 结构转移到 _cut_in_and_slow_l02_checker.osc_ 文件中。
-6. 向 _collect_time_ 结构添加以下参数：
+1. 创建名为_cut_in_and_slow_l02_checker.osc_ 的新文件。
+2. 创建一个名为safe_ttc 的新issue_kind。
+3. 为安全TTC阈值类型定义一个新变量。
+4. 将安全TTC阈值设置为3秒钟。
+5. 将_collect_time_ 结构从_cut_in_and_slow_l02_cov.osc_ 转移到_cut_in_and_slow_l02_checker.osc_ 中。
+6. 将以下参数添加到_collect_time_ 结构中：
 
-        - bad_is: 比较结果与阈值的方向（此处为：low）
-        - threshold: 要比较的阈值（此处为：我们新定义的阈值）
-        - first_failure_kind: 违反阈值时应引发的警报类型（此处为：safe_ttc）
-        - first_failure_severity: 违反阈值时应引发的警报严重性（此处为：error）
+   - bad_is: 比较结果与阈值（这里是：low）的方向
+   - threshold: 与之比较的阈值（这里是：我们新定义的阈值）
+   - first_failure_kind: 如果违反了阈值，则应引发哪种警报（这里是：safe_ttc）
+   - first_failure_severity: 应引发哪种警报严重程度（这里是：error）
 
-7. 从 _ts_l02.osc_ 文件导入新文件 _cut_in_and_slow_l02_checker.osc_。
+7. 从_ts_l02.osc_ 文件导入_new file _cut_in_and_slow_l02_checker.osc_
 
-!!! 提示
-    
-    实验1中的简要检查器语法提醒（标记有<>的词组需要调整）：
-    ```osc
-    extend issue_kind: [<checker_name>]
-   
-    extend sut.<scenario_name>:
-    
-        var <checker_threshold>: time 
-        set <checker_threshold> = 3s 
+!!! tip
 
-    ```
+来自实验室1中简短检查器语法提示(用<>标记单词组需要进行调整)：
+```osc
+extend issue_kind: [<checker_name>]
 
-??? 解决方案 "解决方案 - 点击此处查看"
+extend sut.<scenario_name>:
 
-    ```osc linenums="1"
-
-    extend issue_kind: [safe_ttc]
-
-```markdown
-extend sut.cut_in_and_slow: 
-
-    var ttc_kpi_threshold: time # 安全TTC阈值类型
-    set ttc_kpi_threshold = 3s # 安全TTC阈值
-
-    min_ttc: collect_time(exp: sut.car.get_ttc(),
-        measure: min,
-        bad_is: low,
-        threshold: ttc_kpi_threshold,
-        first_failure_kind: safe_ttc,
-        first_failure_severity: error)
-
-    event sample_ttc is @end
-
-    record(min_ttc_kpi,
-        expression: min_ttc.computed_result,
-        unit: s,
-        event: sample_ttc,
-        text: "最小碰撞时间 (TTC)")
-            
+var <checker_threshold>: time 
+set <checker_threshold> = 3s 
 ```
 
-## 覆盖实践
+??? Solution "Solution - Click Here"
 
-该实践的目的是：
+```osc linenums="1"
+extend issue_kind: [safe_ttc]
+
+```yaml
+extend sut.cut_in_and_slow:
+
+  var ttc_kpi_threshold: time # 安全TTC阈值类型
+  set ttc_kpi_threshold = 3s # 安全TTC阈值数值
+
+  min_ttc: collect_time(exp: sut.car.get_ttc(),
+  measure: min,
+  bad_is: low,
+  threshold: ttc_kpi_threshold,
+  first_failure_kind: safe_ttc,
+  first_failure_severity: error)
+
+  event sample_ttc is @end
+
+  record(min_ttc_kpi,
+    expression: min_ttc.computed_result,
+    unit: s, 
+    event:sample_ttc, 
+    text:"最小碰撞时间（TTC）")
+
+```
+
+## 覆盖率实践
+
+这个实践的目的是：
 
 - 添加一个新的交叉覆盖项。
 - 运行测试。
 - 使用Foretify Manager检查结果。
 
-!!! Example "实践时间" 
-    添加一个新的交叉覆盖项，该项由切入发生的侧面和切入结束时的相对速度定义。
+!!! Example "Hands-on Time"
+添加一个新的交叉覆盖项，由切入发生时的侧面和切入结束时相对速度定义。
 
-    使用Foretify运行额外的测试（你可以使用crun选项自动运行多次）。建议定义一个新的工作目录，例如$FTX_WORKSHOP/l02_second_iter/workdir4。
+使用Foretify运行额外的测试（可以使用crun选项自动运行多次）。最好定义一个新的工作目录，例如$FTX_WORKSHOP/l02_second_iter/workdir4。
 
-    在Foretify Manager中查看结果。你可以做些什么来增加覆盖率？
+在Foretify Manager中查看结果。你能做些什么来增加覆盖率呢？
 
-## 下一步
+## 下一步骤
 
-这就结束了第二次安全驱动验证迭代。在本次实验中，你：
+这样就完成了第二次安全驱动验证迭代。在这个实验中，你：
 
-- 熟悉了场景重用。
-- 使用了_串行_和_并行_等场景操作符。
-- 通过使用跟踪和可视化工具调试了场景。
-- 熟悉了覆盖项和KPI的概念和定义。
+- 熟悉了场景复用。
+- 使用了诸如 _serial_ 和 _parallel_ 的场景操作符。
+- 利用追踪和可视化工具调试了场景。
+- 熟悉了覆盖项目和KPIs的概念和定义。
 
-接下来，在实验3中，你将学习如何扩大测试的数量。
-```
+接下来，在第三节实验中，你将学会如何增加测试数量。
 
 > 本文由ChatGPT翻译，如有任何遗漏，请[**反馈**](https://github.com/linyuxuanlin/Wiki_MkDocs/issues/new)。
