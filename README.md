@@ -13,7 +13,7 @@ Main features of Auto-md-translator:
 
 1. Clone the repository to your local machine, rename `env_template.py` to `env.py`, and provide your ChatGPT API. If you don't have your own API, you can apply for a free one at [GPT_API_free](https://github.com/chatanywhere/GPT_API_free); alternatively, you can use the [go-chatgpt-api](https://github.com/linweiyuan/go-chatgpt-api) to convert the web version of ChatGPT to an API. Note that free APIs have a daily usage limit.
 2. Install the necessary modules: `pip install -r requirements.txt`.
-3. Run the program with the command `python auto-translater.py`. It will automatically process all Markdown files in the test directory `testdir/en-to-translate`, translating them into English, Spanish, and Arabic in batch. (More language support will be provided later)
+3. Run the program with the command `python auto-translater.py`. It will automatically process all Markdown files in the test directory `testdir/en-to-translate`, translating them into Chinese and Japanese in batch. 
 
 ## Detailed Description
 
