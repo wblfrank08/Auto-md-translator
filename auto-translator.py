@@ -4,7 +4,7 @@ import openai  # pip install openai
 import sys
 import re
 import yaml  # pip install PyYAML
-# import env
+import env
 
 # 设置 OpenAI API Key 和 API Base 参数，通过 env.py 传入
 openai.api_key = os.environ.get("CHATGPT_API_KEY")
@@ -17,7 +17,7 @@ max_length = 1800
 dir_to_translate = "testdir/en-to-translate"
 dir_translated = {
     "en": "docs/en",
-    "es": "docs/es",
+    "jp": "docs/jp", 
     "zh": "docs/zh"
 }
 
@@ -29,7 +29,7 @@ processed_list = "processed_list.txt"
 # 由 ChatGPT 翻译的提示
 tips_translated_by_chatgpt = {
     "en": "\n\n> This post is translated using ChatGPT, please [**feedback**](https://github.com/linyuxuanlin/Wiki_MkDocs/issues/new) if any omissions.",
-    "es": "\n\n> Este post está traducido usando ChatGPT, por favor [**feedback**](https://github.com/linyuxuanlin/Wiki_MkDocs/issues/new) si hay alguna omisión.",
+    "jp": "\n\n> この投稿は ChatGPT を使用して翻訳されています。何か抜けている部分があれば、[**フィードバック**](https://github.com/linyuxuanlin/Wiki_MkDocs/issues/new) をお願いします。",  # 更改为 jp
     "zh": "\n\n> 本文由ChatGPT翻译，如有任何遗漏，请[**反馈**](https://github.com/linyuxuanlin/Wiki_MkDocs/issues/new)。"
 }
 
@@ -58,7 +58,7 @@ replace_rules = [
         "orginal_text": "> 原文地址：<https://wiki-power.com/>",
         "replaced_text": {
             "en": "> Original: <https://wiki-power.com/>",
-            "es": "> Dirección original del artículo: <https://wiki-power.com/>",
+            "jp": "> 原文アドレス：<https://wiki-power.com/>",  # 更改为 jp
             "zh": "> 原文地址：<https://wiki-power.com/>",
         }
     },
@@ -67,7 +67,7 @@ replace_rules = [
         "orginal_text": "> 本篇文章受 [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by/4.0/deed.zh) 协议保护，转载请注明出处。",
         "replaced_text": {
             "en": "> This post is protected by [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by/4.0/deed.en) agreement, should be reproduced with attribution.",
-            "es": "> Este artículo está protegido por la licencia [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by/4.0/deed.zh). Si desea reproducirlo, por favor indique la fuente.",
+            "jp": "> この投稿は [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by/4.0/deed.ja) ライセンスで保護されています。転載する場合は出典を明記してください。",  # 更改为 jp
             "zh": "> 本篇文章受 [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by/4.0/deed.zh) 协议保护，转载请注明出处。",
         }
     },
@@ -76,7 +76,7 @@ replace_rules = [
         "orginal_text": "](https://wiki-power.com/",
         "replaced_text": {
             "en": "](https://wiki-power.com/en/",
-            "es": "](https://wiki-power.com/es/",
+            "jp": "](https://wiki-power.com/jp/",  # 更改为 jp
             "zh": "](https://wiki-power.com/zh/",
         }
     }
@@ -95,7 +95,7 @@ front_matter_replace_rules = [
         "orginal_text": "类别 1",
         "replaced_text": {
             "en": "Categories 1",
-            "es": "Categorías 1",
+            "jp": "カテゴリ 1",  # 更改为 jp
             "zh": "类别 1",
         }
     },
@@ -103,7 +103,7 @@ front_matter_replace_rules = [
         "orginal_text": "类别 2",
         "replaced_text": {
             "en": "Categories 2",
-            "es": "Categorías 2",
+            "jp": "カテゴリ 2",  # 更改为 jp
             "zh": "类别 2",
         }
     },
@@ -111,7 +111,7 @@ front_matter_replace_rules = [
         "orginal_text": "标签 1",
         "replaced_text": {
             "en": "Tags 1",
-            "es": "Etiquetas 1",
+            "jp": "タグ 1",  # 更改为 jp
             "zh": "标签 1",
         }
     },
@@ -119,7 +119,7 @@ front_matter_replace_rules = [
         "orginal_text": "标签 2",
         "replaced_text": {
             "en": "Tags 2",
-            "es": "Etiquetas 2",
+            "jp": "タグ 2",  # 更改为 jp
             "zh": "标签 2",
         }
     },
@@ -145,7 +145,7 @@ def front_matter_replace(value, lang):
 def translate_text(text, lang, type):
     target_lang = {
         "en": "English",
-        "es": "Spanish",
+        "jp": "Japanese",  
         "zh": "Chinese"
     }[lang]
     
@@ -194,24 +194,18 @@ def split_text(text, max_length):
     current_paragraph = ""
 
     for paragraph in paragraphs:
-        if len(current_paragraph) + len(paragraph) + 2 <= max_length:
-            # 如果当前段落加上新段落的长度不超过最大长度，就将它们合并
-            if current_paragraph:
-                current_paragraph += "\n\n"
-            current_paragraph += paragraph
+        if len(current_paragraph) + len(paragraph) < max_length:
+            current_paragraph += (paragraph + "\n\n")
         else:
-            # 否则将当前段落添加到输出列表中，并重新开始一个新段落
             output_paragraphs.append(current_paragraph)
-            current_paragraph = paragraph
-
-    # 将最后一个段落添加到输出列表中
+            current_paragraph = paragraph + "\n\n"
     if current_paragraph:
         output_paragraphs.append(current_paragraph)
 
-    # 将输出段落合并为字符串
-    output_text = "\n\n".join(output_paragraphs)
+    return output_paragraphs
 
-    return output_text
+# 其余部分保持不变
+
 
 # 定义翻译文件的函数
 def translate_file(input_file, filename, lang):
@@ -310,8 +304,8 @@ def translate_file(input_file, filename, lang):
     # 加入由 ChatGPT 翻译的提示
     if lang == "en":
         output_text = output_text + tips_translated_by_chatgpt["en"]
-    elif lang == "es":
-        output_text = output_text + tips_translated_by_chatgpt["es"]
+    elif lang == "jp":
+        output_text = output_text + tips_translated_by_chatgpt["jp"]
     elif lang == "zh":
         output_text = output_text + tips_translated_by_chatgpt["zh"]
 
@@ -335,53 +329,7 @@ try:
             print("processed_list created")
             sys.stdout.flush()
 
-    # # 遍历目录下的所有.md文件，并进行翻译
-    # for filename in sorted_file_list:
-    #     if filename.endswith(".md"):
-    #         input_file = os.path.join(dir_to_translate, filename)
-
-    #         # 读取 Markdown 文件的内容
-    #         with open(input_file, "r", encoding="utf-8") as f:
-    #             md_content = f.read()
-
-    #         # 读取processed_list内容
-    #         with open(processed_list, "r", encoding="utf-8") as f:
-    #             processed_list_content = f.read()
-
-    #         if marker_force_translate in md_content:  # 如果有强制翻译的标识，则执行这部分的代码
-    #             if marker_written_in_en in md_content:  # 翻译为除英文之外的语言
-    #                 print("Pass the en-en translation: ", filename)
-    #                 sys.stdout.flush()
-    #                 # translate_file(input_file, filename, "es")
-    #                 translate_file(input_file, filename, "zh")
-    #             else:  # 翻译为所有语言
-    #                 # translate_file(input_file, filename, "en")
-    #                 # translate_file(input_file, filename, "es")
-    #                 translate_file(input_file, filename, "zh")
-    #         elif filename in exclude_list:  # 不进行翻译
-    #             print(f"Pass the post in exclude_list: {filename}")
-    #             sys.stdout.flush()
-    #         elif filename in processed_list_content:  # 不进行翻译
-    #             print(f"Pass the post in processed_list: {filename}")
-    #             sys.stdout.flush()
-    #         elif marker_written_in_en in md_content:  # 翻译为除英文之外的语言
-    #             print(f"Pass the en-en translation: {filename}")
-    #             sys.stdout.flush()
-    #             for lang in ["es", "zh"]:
-    #                 translate_file(input_file, filename, lang)
-    #         else:  # 翻译为所有语言
-    #             for lang in ["en", "es", "zh"]:
-    #                 translate_file(input_file, filename, lang)
-
-    #         # 将处理完成的文件名加到列表，下次跳过不处理
-    #         if filename not in processed_list_content:
-    #             print(f"Added into processed_list: {filename}")
-    #             with open(processed_list, "a", encoding="utf-8") as f:
-    #                 f.write("\n")
-    #                 f.write(filename)
-
-    #         # 强制将缓冲区中的数据刷新到终端中，使用 GitHub Action 时方便实时查看过程
-    #         sys.stdout.flush()
+    # 遍历目录下的所有.md文件，并进行翻译
     for filename in sorted_file_list:
         if filename.endswith(".md"):
             input_file = os.path.join(dir_to_translate, filename)
@@ -390,25 +338,44 @@ try:
             with open(input_file, "r", encoding="utf-8") as f:
                 md_content = f.read()
 
-            # 读取 processed_list 内容
+            # 读取processed_list内容
             with open(processed_list, "r", encoding="utf-8") as f:
                 processed_list_content = f.read()
 
             if marker_force_translate in md_content:  # 如果有强制翻译的标识，则执行这部分的代码
-                print("Translating (forced): ", filename)
-                sys.stdout.flush()
-                translate_file(input_file, filename, "zh")
+                if marker_written_in_en in md_content:  # 翻译为除英文之外的语言
+                    print("Pass the en-en translation: ", filename)
+                    sys.stdout.flush()
+                    translate_file(input_file, filename, "jp")
+                    translate_file(input_file, filename, "zh")
+                else:  # 翻译为所有语言
+                    translate_file(input_file, filename, "jp")
+                    translate_file(input_file, filename, "zh")
             elif filename in exclude_list:  # 不进行翻译
                 print(f"Pass the post in exclude_list: {filename}")
                 sys.stdout.flush()
             elif filename in processed_list_content:  # 不进行翻译
                 print(f"Pass the post in processed_list: {filename}")
                 sys.stdout.flush()
-            else:  # 翻译为中文
-                print(f"Translating: {filename}")
+            elif marker_written_in_en in md_content:  # 翻译为除英文之外的语言
+                print(f"Pass the en-en translation: {filename}")
                 sys.stdout.flush()
-                translate_file(input_file, filename, "zh")
-        
+                for lang in ["jp", "zh"]:
+                    translate_file(input_file, filename, lang)
+            else:  # 翻译为所有语言
+                for lang in ["zh", "jp"]:
+                    translate_file(input_file, filename, lang)
+
+            # 将处理完成的文件名加到列表，下次跳过不处理
+            if filename not in processed_list_content:
+                print(f"Added into processed_list: {filename}")
+                with open(processed_list, "a", encoding="utf-8") as f:
+                    f.write("\n")
+                    f.write(filename)
+
+            # 强制将缓冲区中的数据刷新到终端中，使用 GitHub Action 时方便实时查看过程
+            sys.stdout.flush()
+
     # 所有任务完成的提示
     print("Congratulations! All files processed done.")
     sys.stdout.flush()
