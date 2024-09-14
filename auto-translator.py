@@ -5,6 +5,7 @@ import sys
 import re
 import yaml  # pip install PyYAML
 import env
+from pathlib import Path
 
 # 设置 OpenAI API Key 和 API Base 参数，通过 env.py 传入
 openai.api_key = os.environ.get("CHATGPT_API_KEY")
@@ -14,12 +15,24 @@ openai.api_base = os.environ.get("CHATGPT_API_BASE")
 max_length = 1800
 
 # 设置翻译的路径
-dir_to_translate = "testdir/en-to-translate"
+dir_to_translate = "testdir"
+# dir_to_translate = r"C:\FTX\ftx\docs\pages"
 dir_translated = {
     "en": "docs/en",
     "jp": "docs/jp", 
     "zh": "docs/zh"
 }
+
+
+def list_relative_files(dir_path):
+    relative_paths = []
+    dir_path = Path(dir_path)  # 使用 Path 对象
+    for file_path in dir_path.rglob('*.md'):  # 遍历所有 .md 文件
+        relative_path = file_path.relative_to(dir_path)
+        relative_path_str = str(relative_path).replace('\\', '/')
+        relative_paths.append(relative_path_str)
+    return relative_paths
+            
 
 # 不进行翻译的文件列表
 exclude_list = ["index.md", "Contact-and-Subscribe.md", "WeChat.md"]
@@ -153,7 +166,7 @@ def translate_text(text, lang, type):
     # 翻译 Front Matter。
     if type == "front-matter":
         completion = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": "You are a professional translation engine, please translate the text into a colloquial, professional, elegant and fluent content, without the style of machine translation. You must only translate the text content, never interpret it."},
                 {"role": "user", "content": f"Translate into {target_lang}:\n\n{text}\n"},
@@ -162,7 +175,7 @@ def translate_text(text, lang, type):
     # 翻译正文
     elif type== "main-body":
         completion = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": "You are a professional translation engine, please translate the text into a colloquial, professional, elegant and fluent content, without the style of machine translation. You must maintain the original markdown format. You must not translate the `[to_be_replace[x]]` field.You must only translate the text content, never interpret it."},
                 {"role": "user", "content": f"Translate into {target_lang}:\n\n{text}\n"},
@@ -214,10 +227,14 @@ def translate_file(input_file, filename, lang):
 
     # 定义输出文件
     if lang in dir_translated:
-        output_dir = dir_translated[lang]
+        dest_dir = dir_translated[lang]
+        output_file = os.path.join(dest_dir, filename)
+    
+        # 确保目标目录存在
+        output_dir = os.path.dirname(output_file)
+        os.makedirs(output_dir, exist_ok=True)
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
-        output_file = os.path.join(output_dir, filename)
 
     # 读取输入文件内容
     with open(input_file, "r", encoding="utf-8") as f:
@@ -318,9 +335,11 @@ def translate_file(input_file, filename, lang):
         f.write(output_text)
 
 # 按文件名称顺序排序
-file_list = os.listdir(dir_to_translate)
-sorted_file_list = sorted(file_list)
-# print(sorted_file_list)
+sorted_file_list=list_relative_files(dir_to_translate)
+
+# file_list = os.listdir(dir_to_translate)
+# sorted_file_list = sorted(file_list)
+print(sorted_file_list)
 
 try:
     # 创建一个外部列表文件，存放已处理的 Markdown 文件名列表
@@ -330,9 +349,14 @@ try:
             sys.stdout.flush()
 
     # 遍历目录下的所有.md文件，并进行翻译
-    for filename in sorted_file_list:
-        if filename.endswith(".md"):
-            input_file = os.path.join(dir_to_translate, filename)
+    for relative_path_file in sorted_file_list:
+        if relative_path_file.endswith(".md"): # filename is relative path+name
+            # input_file = os.path.join(dir_to_translate, filename)
+            input_file = os.path.join(dir_to_translate, relative_path_file)
+            filename = Path(relative_path_file).name
+            print(filename)
+            print(input_file)
+            # print("filename:", filename)
 
             # 读取 Markdown 文件的内容
             with open(input_file, "r", encoding="utf-8") as f:
@@ -346,11 +370,11 @@ try:
                 if marker_written_in_en in md_content:  # 翻译为除英文之外的语言
                     print("Pass the en-en translation: ", filename)
                     sys.stdout.flush()
-                    translate_file(input_file, filename, "jp")
-                    translate_file(input_file, filename, "zh")
+                    # translate_file(input_file, filename, "jp")
+                    translate_file(input_file, relative_path_file, "zh")
                 else:  # 翻译为所有语言
-                    translate_file(input_file, filename, "jp")
-                    translate_file(input_file, filename, "zh")
+                    # translate_file(input_file, filename, "jp")
+                    translate_file(input_file, relative_path_file, "zh")
             elif filename in exclude_list:  # 不进行翻译
                 print(f"Pass the post in exclude_list: {filename}")
                 sys.stdout.flush()
@@ -360,11 +384,11 @@ try:
             elif marker_written_in_en in md_content:  # 翻译为除英文之外的语言
                 print(f"Pass the en-en translation: {filename}")
                 sys.stdout.flush()
-                for lang in ["jp", "zh"]:
-                    translate_file(input_file, filename, lang)
+                for lang in ["zh"]:
+                    translate_file(input_file, relative_path_file, lang)
             else:  # 翻译为所有语言
-                for lang in ["zh", "jp"]:
-                    translate_file(input_file, filename, lang)
+                for lang in ["zh"]:
+                    translate_file(input_file, relative_path_file, lang)
 
             # 将处理完成的文件名加到列表，下次跳过不处理
             if filename not in processed_list_content:
