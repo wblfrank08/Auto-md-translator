@@ -6,98 +6,115 @@ chapnum: 1
 
 ## 学習目標
 
-この実験では、以下について紹介します:
+この実習では、以下の内容を紹介します:
 
-- 簡単な**ASAM OpenSCENARIO 2.0 (OSC2)** テストの実装。（ASAMは自動化および計測システムの標準化協会です。）
+- 簡単な**ASAM OpenSCENARIO 2.0 (OSC2)** テスト実装 (ASAMは自動化および計測システムの標準化協会の略称です).
 
 !!! Note
- Foretellixドキュメント全体で、「OSC2」という用語は「ASAM OpenSCENARIO® DSL バージョン2.x」を指します。
+    Foretellixのドキュメント全体で、用語「OSC2」は「ASAM OpenSCENARIO® DSL バージョン 2.x」を指します.
 
-- **Foretify™**, **シナリオ開発およびテスト自動化プラットフォーム**:
- - OSC2ソースのコンパイル
- - 抽象的なシナリオ定義から具体的なテストの生成
- - テスト実行中にシミュレーションプラットフォーム内のアクターを制御
- - テスト実行結果をプロットし可視化する
+- **Foretify™**、**シナリオ開発およびテスト自動化プラットフォーム**、以下の目的で使用されます:
+    - OSC2ソースのコンパイル
+    - 抽象シナリオ定義から具体的なテストの生成
+    - テスト実行中のシミュレーションプラットフォーム内のアクターの制御
+    - テスト実行の結果をプロットして可視化
 
-- **Foretify Manager**, **ビッグデータ分析プラットフォーム**:
- - 複数回のテスト実行時にキーコンフィグレーションインディケータ（KPI）、チェッカーメッセージ、カバレッジメトリクスを収集する
- - テスト進捗を可視化し、セーフティ・ドリブン・検証（SDV）方法論アプローチを可能にする
+- **Foretify Manager**、**ビッグデータ分析プラットフォーム**、主に以下の目的で使用されます:
+    - 複数のテスト実行のキーパフォーマンスインジケーター（KPI）、チェッカーメッセージ、およびカバレッジメトリクスを収集
+    - テストの進捗を可視化し、Safety-Driven Verification (SDV) の方法論アプローチを実現
 
 <p align="center">
- <a href="images/l01_ftx_diagram.png" target="_blank">
- <img src="images/l01_ftx_diagram.png">
- </a>
+  <a href="images/l01_ftx_diagram.png" target="_blank">
+    <img src="images/l01_ftx_diagram.png">
+  </a>
 </p>
 
 !!! Note
- 画像をクリックすると新しいタブで全解像度で表示されます。
+    任意の画像をクリックすると、新しいタブで高解像度で開きます.
 
 ## OSC2言語
 
-During both development and verification processes of AD and ADAS functions, it is necessary to stimulate the System Under Test (SUT) with various *scenarios*. A scenario is a timed sequence of actions by one or more actors, such as cars, pedestrians, environmental conditions and the SUT itself. OSC2 is a domain-specific language, specifically designed for describing scenarios where actors move through an environment. These scenarios have attributes that allow you to constrain the actor types, their movements, and the environment (including the location on the map where the scenario should take place).
+開発と検証の両プロセスにおいて、ADおよびADAS機能については、さまざまな*シナリオ*を用いて System Under Test (SUT) を刺激する必要があります。シナリオとは、車両、歩行者、環境条件、およびSUT自体など、1つ以上のアクターによるアクションの時間的な連続です。OSC2は、アクターが環境を移動するシナリオを記述するために特に設計されたドメイン固有の言語です。これらのシナリオには属性があり、アクタータイプ、彼らの移動、および環境（シナリオがどこで発生すべきかを含むマップ上の位置など）を制約することができます。
 
-!!! Info 
-    With a *constrained random* approach, every scenario attribute that is not constrained is randomized. As an example, if you do not constrain a cut-in scenario "side" attribute to be "right", it will be randomly chosen from the space of possible attributes (namely, "left" and "right").
+!!! Info
+    *制約ランダム*のアプローチを用いると、制約がないシナリオ属性はランダムになります。例えば、カットインシナリオの"side"属性を"right"に制約しない場合、可能な属性の空間（すなわち、"left" および "right"）からランダムに選択されます。
 
-    Additionally, the values are chosen from the space of possible attributes so that they satisfy the constraints, deriving from the scenario, the actors, and the map. As an example, if the SUT (EGO) is driving on the outmost right lane of a 2 lanes road, the cut-in "side" attribute will not be chosen to be "right".
+    さらに、値は可能な属性の空間から選択されて、シナリオ、アクター、およびマップから派生する制約を満たします。例えば、SUT (EGO) が2車線道路の最も右側のレーンを走行している場合、カットインの "side" 属性は "right" と選択されません。
+
+OSC2の構成要素は、データ構造などです：
+
+- **Actors**: 実世界のエンティティを表します。その名前が示す通り、シナリオで"役割を演じて"います。
+- **シナリオ**または**アクション**: アクターの振る舞いを記述します。一般的に、シナリオはアクションの長いシーケンスですが、両者の間に形式上の違いはありません。両方とも*修飾子*を介して修正できます。
+- **修飾子**: シナリオに制約を追加し、望ましい範囲内での実行を支援します。
+- **ラベル**: スカラー、構造体、アクタータイプの名前付きデータフィールドを定義します。
+- **単純な構造体**: 属性、制約などを含む基本的なエンティティです。
+
+以上のトピックについては、Foretellixの[OSC2言語ドキュメント](../osc_lang/osclang_intro.md)や[OSCドメインモデルドキュメント](../osc_dom/oscdomain_intro.md)を参照するか、[ASAM型定義トピック](https://www.asam.net/index.php?eID=dumpFile&t=f&f=3460&token=14e7c7fab9c9b75118bb4939c725738fa0521fe9#type-definitions)、または[ASAM OSC2ウェブページ](https://www.asam.net/project-detail/asam-openscenario-v20-1/)をご覧ください。
 
 
+!!! Info
+    Foretellixツールは**ASAM OSC2言語をネイティブサポート**しており、その結果、多くの利点があります。その1つは、言語とツールが**実行プラットフォームに依存しない**ことです。これにより、検証環境を変更する際の**作業量が削減**され、適切な検証プラットフォームを選択する際に**柔軟性が向上**します。
 
+    OSC2は**抽象シナリオ**と**セーフティドリブン検証**フローをサポートしています。このワークショップを通じて、これらの機能がどのようにV&V作業を**効率化**し、自律システムを検証する際に必要な**リソースを減らす**のかを理解します。
 
-- **Actors**: 実世界のエンティティを表すもの。その名前が示す通り、シナリオで役割を演じている。
-- **シナリオ**または**アクション**: アクターの振る舞いを記述する。一般的に、シナリオはアクションの長い連続だが、形式上の違いはない。どちらも*修飾子*を介して変更できる。
-- **修飾子**: シナリオに制約を追加し、望ましい境界内で実行を制御するのに役立つ。
-- **ラベル**: スカラー型や構造体型、アクター型の名前付きデータフィールドを定義する。
-- **単純な構造体**: 属性や制約などを含む基本的なエンティティ。
+### 初めてのテスト
 
-上記のトピックについて詳しく知りたい場合は、Foretellix [OSC2言語ドキュメント](../osc_lang/osclang_intro.md) と [OSCドメインモデルドキュメント](../osc_dom/oscdomain_intro.md) を参照するか、[ASAM Type Definitionsトピック](https://www.asam.net/index.php?eID=dumpFile&t=f&f=3460&token=14e7c7fab9c9b75118bb4939c725738fa0521fe9#type-definitions) を訪れたりしてください。または[ASAM OSC2ウェブページ](https://www.asam.net/project-detail/asam-openscenario-v20-1/)でも確認できます。
+テストはシナリオが呼び出されるOSC2コードであり、ヒエラルキ的には最上位層と見なされます。
 
-!!! Info 
- Foretellix ツールは**ASAM OSC2言語をネイティブサポート**しており、その結果多くの利点があります。そのうちの1つが、「言語とツールが**実行プラットフォーム不可知**」であることです。これにより検証環境変更時にかかる労力が減少し、「適切な検証プラットフォーム選択時」に「柔軟性が向上」します。
+1. テスト実行プラットフォーム構成（例：シミュレーター）をインポートします。
 
-OSC2では、「抽象的なシナリオ」と「安全駆動検証」フローをサポートしています。「このワークショップではこれら特長がV&V作業効率化」という点から「自律システム検証へ投入される資源数削減」へつながっています。
+2. SUT（例：テスト対象システム、通常はEGOとも呼ばれる）の構成をインポートします。この場合、テストされる機能として、Foretellixによって開発されたSUT L4スタックをインポートし、EGO車両の属性を構成します。
 
-### 最初のテスト
+3. テストに使用する地図を設定します。
 
-テストとは「OSC2コードから呼び出されるシナリオ」であり、“階層的” トップレイヤーと見做されています:
+4. シナリオとメトリクス（チェック、カバレッジ、KPIなど）を定義し、シナリオの実行を呼び出します。
 
-1. テスト実行プラットフォームの構成（例：シミュレーター）をインポートします。
+次の画像では、実行するテストの構造が確認できます：
 
-2. SUT（システムテスト対象、通常EGOとしても知られています）の構成をインポートします。この場合、テストされる機能として、Foretellixによって開発されたSUT L4スタックをインポートし、EGO車両の属性を構成しています。
+<p align="center">
+  <a href="images/Test_2.png" target="_blank">
+    <img src="images/Test_2.png">
+  </a>
+</p>
 
-3. テストで使用する地図を設定します。
+!!! Example "ハンズオン時間"
+    ワークショップを始める準備が整ったので、最初のテストを詳しく見てみる時がきました。
 
-4. シナリオとメトリクス（チェック、カバレッジ、KPI）を定義し、シナリオの実行を呼び出します。
-
-次の画像では、実行するテストの構造が見えます：
-
-&lt;p align="center">
-  &lt;a href="images/Test_2.png" target="_blank">
-    &lt;img src="images/Test_2.png">
-  &lt;/a>
-&lt;/p>
-
-!!! 例 "実践時間"
-    ワークショップを開始する準備が整ったら、最初のテストを詳しく見てみる時がきました。
-
-    Foretify Developer OSC2コードコンパイラーで最初のテストを開いてください：
+    Foretify Developer OSC2コードコンパイラーを使用して最初のテストを開きます：
 
     ```bash
     foretify --load $FTX_WORKSHOP/l01_intro/ts_l01_intro.osc --gui
     ```
 
-Foretify GUIがブラウザに表示されます。このトレ
+ブラウザにForetify GUIが表示されます。このトレーニング中にさらなる機能を学びます。今のところOSC2コードのコンパイルと視覚化機能に焦点を当てます。**Source**タブをクリックして、以下の画像のように**Loaded Files**ペインを折りたたんでください：
 
-以下のセクションでは、インポート文の内容とコードの残りの部分について説明します。
+<p align="center">
+  <a href="images/l01_ftx_dev.png" target="_blank">
+    <img src="images/l01_ftx_dev.png">
+  </a>
+</p>
+
+テストでは、他のOSC2ファイルをロードする_import_ステートメントに注目してください：
+
+```osc linenums="3"
+import "$FTX_WORKSHOP/common/workshop_config.osc"
+import "$FTX_WORKSHOP/scenarios/cut_in_l01.osc"
+import "ts_l01_intro_cov.osc"
+import "ts_l01_intro_checks.osc"
+```
+全てのコードを1つのファイルにすることもできますが、それでは読みやすさが損なわれ、再利用性が低下し、管理が難しくなります。
+
+### ファイルのインポート文に進みます。次のセクションでは、importステートメントの内容と、コードの残りの部分を確認します。
 
 ### _workshop_config.osc_ 設定ファイル
 
-`workshop_config.osc` ファイル（テストファイルの3行目でインポートされています）には、Foretifyと実行プラットフォーム接続の設定（異なるシミュレータを使用できます）およびシステムアンダーテスト（SUT）接続（この場合、自律走行のEgo）のすべての定義が含まれています。
+`workshop_config.osc`ファイル（テストファイルの3行目でインポートされます）には、Foretifyの設定および実行プラットフォーム接続（異なるシミュレータを使用できます）のすべての定義が含まれています。また、System Under Test（SUT）接続（この場合、自律走行するエゴ）も含まれています。
 
 ### _cut_in_l01.osc_ シナリオファイル
 
-`cut_in_l01.osc` ファイルは4行目でインポートされ、このラボの対象であるカットインシナリオの抽象的な定義を含んでいます。絶対的および相対的な制約のセットを通じて、車両がSUTの前で車線変更を行うという定義をしています。OSC2は抽象化をサポートする唯一のシナリオ記述言語であり、シナリオ開発者がコードの記述に費やす時間を大幅に削減します。
-以下の画像では、抽象的なカットインシナリオの具体的なインスタンスが2つ表示されています。
+`cut_in_l01.osc`ファイルは4行目でインポートされ、カットインシナリオの抽象的な定義を含んでいます。ここでは、絶対的および相対的な制約のセットを通じて、車両がSUTの前で車線変更を行うべきであると定義しています。OSC2は抽象化をサポートする唯一のシナリオ記述言語であり、シナリオ開発者がコードを書くのに費やす時間を大幅に削減します。
+
+以下の画像では、抽象的なカットインシナリオの具体的なインスタンスを2つ見ることができます。
 
 <p align="center">
   <a href="images/workshop_lab_1_cut_in_lab_1_scenario.png" target="_blank">
@@ -106,9 +123,9 @@ Foretify GUIがブラウザに表示されます。このトレ
 </p>
 
 !!! 例 "実践時間"
-    ソースタブのテストファイルの4行目をクリックしてインポートされる `cut_in_l01.osc` ファイルを開いてください。
+    Sourceタブのテストファイルの4行目をクリックしてインポートされた`cut_in_l01.osc`ファイルを開いてください。
 
-以下に示すコードは、カットインシナリオを実装しています。
+以下に示すコードは、カットインシナリオを実装しています:
 
 <p align="center">
   <a href="images/workshop_l01_cut_in_code_vscode.png" target="_blank">
@@ -116,78 +133,78 @@ Foretify GUIがブラウザに表示されます。このトレ
   </a>
 </p>
 
-コードの内容を確認しましょう。
+コードを見ていきましょう:
 
-- Line 6: sut.cut_in_l01というシナリオが宣言されています。これはSUTの文脈で宣言されているため、sut.name_of_scenarioと呼ばれています。
-- Line 7: car1は、"vehicle"型のオブジェクトとしてインスタンス化されます。これはSUTではないもう一つの車です。
-- Line 8: car1がカットインする側は、列挙型の"av_side"としてインスタンス化されます。これは、"left"または"right"の値を保持できることを意味します。
-- Line 10: 以降のブロックが順番に実行されることを示しています。この場合、log_infoの後にapproach_phaseというフェーズが実行され、その後にchange_laneフェーズが実行されます。
-- Line 12: カットイン側をログに書き込みます。ログステートメントを使用すると、後でデバッグ目的で使用できる行を追加できます。
-- Line 14: "approach_phase"というラベルが付けられた並列シナリオフェーズが作成されます。これは、行15と18が並列に実行されることを意味します（OSC2はインデントベースの言語であることを覚えておいてください）。ラベルを使用すると、コードの他の領域からその部分を参照できます。
-  - Line 15: SUTにdrive()アクションを開始するようにトリガーをかけます。次の行（16と17）では、SUTのドライブアクションにいくつかの制約が追加されています。
-    - Line 16: アプローチフェーズの開始時にSUTの速度が少なくとも30 km/hであるように制約をかけます。
-    - Line 17: SUTがアプローチフェーズを通過する間、車線を維持するように制約をかけます。
-  - Line 18: car1にdrive()アクションを開始するようにトリガーをかけます。car1はSUTではないため、Foretifyエンジンによって完全に制御されます。次の行（19から22行目）では、car1の移動にいくつかの制約が追加され、カットインマネuーバーにつながるようになります。
-    - Line 19: このフェーズ全体で、car1はSUTに隣接するレーンにいるように制約をかけます。
-    - Line 20: このフェーズの開始時に、car1のSUTに対する相対位置が定義されます（SUTの10〜20メートル先）。
-    - Line 21: このフェーズの終了時に、car1のSUTに対する相対位置が定義されます（SUTの10〜20メートル先）。
-    - Line 22: car1のSUTに対する相対位置は、ベストエフォート条件として定義されます。これは、制約を満たすことができない場合でも、ソルバーがこのシナリオを失敗としてラベル付けしないことを意味します。シミュレータの制限により、計画された実行が完全に展開できない場合があり、_incomplete scenarios_としてラベル付けされる場合があります。非重要制約をベストエフォート制約として定義することで、そのような実行の割合を減らすことができます。詳細については、高度なラボで「計画」と「ランタイム」の違いについて学びます。
-- Line 23: "change_lane"というラベルが付けられた2番目の並列シナリオフェーズが作成されます。これは、行24と32の後続アクションが並列に実行されることを意味します。
-  - Line 24: SUTにdrive()アクションを開始するようにトリガーをかけ、その後にいくつかの修飾子が続きます。
-    - Line 25: SUTのドライブアクションに制約を追加し、このシナリオフェーズ全体で車線を維持するようにします。
-  - Line 26: car1にdrive()アクションを実行するようにトリガーをかけ、行29から34で制約をかけます。
-    - Line 27: このフェーズの開始時に、car1の速度がSUTの速度よりも5〜15 km/h遅くなるように制約をかけます。
-    - Line 28: 速度制約を非重要なベストエフォート制約にオーバーライドします。
-    - Line 29: このシナリオフェーズの終わりに、car1がSUTと同じレーンにいるように制約をかけます。
-    - Line 30: car1の速度は、シナリオフェーズ全体で一定に保たれます。
-    - Line 31: 再び、この速度制約は非重要であり、ベストエフォートで実行されるように定義されています。
-    - Line 32: この行は、car1の衝突回避行動を無効にし、SUTにとってレーンチェンジが難しくなります。詳細については、高度なラボで一般的な車両アクターの衝突回避行動について学びます。
+- Line 6: sut.cut_in_l01というシナリオがSUTのコンテキストで宣言されています（だからsut.name_of_scenarioですね）
+- Line 7: SUTではない別の車car1が"vehicle"型のオブジェクトとしてインスタンス化されます
+- Line 8: car1が切り込む側が"av_side"という列挙型としてインスタンス化されます。これは"left"または"right"という値を保持できることを意味します
+- Line 10: これ以降のブロックが順次実行されることを示します。この場合、log_infoの後にapproach_phaseというフェーズが実行され、それに続いてchange_laneフェーズが実行されます
+- Line 12: 切り込み側をログに書き込みます。ログステートメントを使用すると、デバッグ目的で後で使用できる行を追加できます
+- Line 14: 並列シナリオフェーズが作成され、"approach_phase"とラベルが付けられます。これはライン15と18が並行して実行されることを意味します（OSC2はインデントベースの言語であることを覚えておいてください）。ラベルを使用すると、コードの他の部分からその部分を参照できます
+  - Line 15: SUTにdrive()アクションを開始するようトリガーがかかります。次のライン（16と17）では、SUTのdriveアクションにいくつかの制約が追加されます：
+    - Line 16: approach_phaseの開始時点でSUTの速度を少なくとも30 km/hに制約します
+    - Line 17: SUTにアプローチフェーズ中に車線を維持するよう制約を加えます
+  - Line 18: car1にdrive()アクションを開始するようトリガーがかかります。car1はSUTではないため、運転中は完全にForetifyエンジンによって制御されます。次のライン（19から22）では、car1の移動にいくつかの制約が追加されます。これにより、切り込みマニューバが実現されるようになります：
+    - Line 19: このフェーズ全体でcar1がSUTに隣接した車線に制約されます
+    - Line 20: このフェーズの開始時のcar1の位置はSUTから10から20メートル前方に定義されます
+    - Line 21: このフェーズの終了時のcar1の位置はSUTから10から20メートル前方に定義されます
+    - Line 22: car1の位置はベストエフォート条件に定義されます。これは、制約が満たされない場合でもソルバーがこのシナリオを失敗としてラベル付けしないことを意味します。シミュレータの制限により、予定された実行が完全に展開できない場合があり、そのような実行を_incomplete scenarios_としてラベル付けされます。重要でない制約をベストエフォート制約として定義することで、そのような実行の割合を減らすのに役立ちます。この機能や「計画」と「実行時」の違いについては、上級ラボで詳しく学ぶことができます
+- Line 23: "change_lane"というラベルが付けられた2番目の並列シナリオフェーズが作成されます。これはライン24と32の後続のアクションが並行して実行されることを意味します
+  - Line 24: SUTにdrive()アクションを開始するようトリガーがかかり、複数の修飾子が続きます
+    - Line 25: SUTのdriveアクションに制約を追加し、シナリオフェーズ全体で車線を維持するよう求めます
+  - Line 26: car1にdrive()アクションを実行するようトリガーがかかり、ライン29から34で制約が追加されます
+    - Line 27: フェーズの開始時にcar1の速度をSUTの速度より5〜15 km/h遅くするように制約を加えます
+    - Line 28: 速度制約を非重要なベストエフォート制約にオーバーライドします
+    - Line 29: フェーズの終了時にcar1がSUTと同じ車線に制約されるようにします
+    - Line 30: car1の速度はシナリオフェーズ全体で一定に保たれます
+    - Line 31: この速度制約も非重要であり、最善の努力で実行されるよう定義されます
+    - Line 32: この行はcar1の衝突回避行動を非アクティブ化し、SUTにとって車線変更が難しくなります。汎用車両アクターの衝突回避行動については、上級ラボで詳しく学ぶことになります
 
 ### 行動モニタリング
 
-以下の3つのセクションでは、いくつかの例を交えながら、_カバレッジ_、_KPIまたはレコード_、そして _チェッカー_ の概念について簡単に紹介します。これらは安全志向の検証方法論の重要な要素であり、検証プロセスをサポートし、SUTの誤ったパフォーマンスを明らかにします。次回の実験では、それぞれの機能について詳しく説明していきます。
+次の3つのセクションでは、一部の例を使って、_カバレッジ_、_KPIまたはレコード_、_チェッカー_の概念を簡単に紹介します。これらは安全を重視した検証手法の重要な要素です。なぜならば、これらは検証プロセスをサポートし、システムアンダーテストの誤った動作を明らかにするからです。次回の実習では、これらの機能について深く掘り下げて説明します。
 
-#### _ts_l01_intro_cov.osc_ カバレッジ定義
+#### _ts_l01_intro_cov.osc_のカバレッジ定義
 
 !!! 例 "実践時間"
- `ts_l01_intro.osc` テストファイル内で5行目をクリックして `ts_l01_intro_cov.osc` ファイルを開いてください。
+    ソースタブの`ts_l01_intro.osc`テストファイルの5行目をクリックしてインポートされた`ts_l01_intro_cov.osc`ファイルを開いてください。
 
 <p align="center">
- <a href="images/workshop_lab_1_cut_in_lab_1_osc_cover.png" target="_blank">
- <img src="images/workshop_lab_1_cut_in_lab_1_osc_cover.png">
- </a>
+  <a href="images/workshop_lab_1_cut_in_lab_1_osc_cover.png" target="_blank">
+    <img src="images/workshop_lab_1_cut_in_lab_1_osc_cover.png">
+  </a>
 </p>
 
-上記コードは**カバレッジ収集**を定義しています：
+上記のコードは**カバレッジ収集**を定義しています：
 
-- 最初の指標（4行目）は車線変更が起こる側―左または右です。
-- 2番目の指標（5行目）は車線変更する車種です。例えばトラックまたはセダンです。
-- 次の指標（6から11行目）はシナリオフェーズ終了時点で車が走行する速度です。
-- 最後に（12から18行目）主要なシナリオが開始される際に2台の車両間で生じる縦方向距離です。
+- 最初のメトリック（4行目）はカットインが発生した側、左か右かです。
+- 2つ目のメトリック（5行目）はカットインを行う車のタイプ、例えばトラックやセダンです。
+- 次のメトリック（6から11行目）は、車がレーンチェンジシナリオフェーズの終わりにどの速度で走行しているかです。
+- 最後のメトリック（12から18行目）は、メインシナリオが開始する時点で2台の車の間の縦方向の距離です。
 
 !!!情報
- - 6行目では OSC2 の重要な構造化型メンバーである _event_(イベント) を使用しました。このイベントは_end_(終了) とより具体的に言うと `$FTX_WORKSHOP/scenarios/cut_in_l01.osc` シナリオで定義された change_lane フェーズ終了イベントを表しています。
- - イベントは一過的なオブジェクトであり時間的ポイントを表し、シナリオ内で定義されたアクションをトリガーさせることが出来ます。通常そのような例外的操作やアクターや場面内部でもそれ自身もしくわより典型的操作範囲内部でもそのような事象(インスタンス) を確立することが出来ます。
+    - 6行目では、OSC2の重要な構造化タイプメンバーの1つ、_event_を使用しました。このイベントは_end_であり、具体的には`$FTX_WORKSHOP/scenarios/cut_in_l01.osc`シナリオで定義されたchange_laneフェーズの終了イベントを表します。
+    - イベントは一時的なオブジェクトで、時間の特定のポイントを表し、シナリオで定義されたアクションをトリガーできます。イベントは構造体内に定義することもできますが、一般的にはアクターまたはシナリオ内に定義します。
 
-#### _ts_l01_intro_cov.osc_ KPIの定義
+### _ts_l01_intro_cov.osc_ の KPI 定義
 
-KPIは、前のセクションのカバレッジ項目と同じファイルで定義されています。
+この KPI は、前のセクションのカバレッジ項目と同じファイル内で定義されています。
 
-このコードのこの部分では、以下のようにKPIを定義しています。
+このコードのこの部分では、次のように KPI を定義します:
 
-- まず、change_laneの終わりでSUTとcut-in carの間の距離をサンプリングするための変数が、21行から22行で宣言されます。
-- 25行から27行では、KPIを後で可視化するために_record()_メソッドを使用して、KPIを記録します。
+- まず、SUT とカットイン車との距離をサンプリングするための変数が、21行から22行で宣言されています。
+- 25行から27行では、後で視覚化するための KPI を記録するために、_record()_ メソッドが使用されています。
 
-!!! Info
-    いくつかの例を見てきたので、カバレッジメトリックとパフォーマンスメトリックの主な違いを理解することが重要です。
+!!! 情報
+    いくつかの例を通過したので、カバレッジメトリックとパフォーマンスメトリックの主な違いを理解することが重要です：
 
-    - **カバレッジ評価**: _どの「シナリオスペース」の部分でAVを実行したか？_ これは、カバレッジと全体的なカバレッジグレードによって表されます。カバレッジ項目は、カバレッジ評価をサポートするために定義されます。つまり、カバレッジグレードは、SUTがどの程度テストされたかという問いに答えます。
-    - **パフォーマンス評価**: _テストでSUTがどの程度うまく機能したか？_ この質問には、1つまたは複数のKPIで答えることができます。
+    - **カバレッジ評価**：_どの部分の “シナリオスペース” を AV で試験しましたか？_ これはカバレッジと総合的なカバレッジ評価の形で表現されます。カバレッジ項目がカバレッジ評価をサポートするために定義されています。つまり、カバレッジ評価は次の質問に答えます：_SUT のテストはどれほど良かったですか？_
+    - **パフォーマンス評価**：_テストで SUT がどれほど優れて機能しましたか？_ この質問には、1つまたは複数の KPI によって答えられます。
 
-#### _ts_l01_intro_checks.osc_ チェッカーの定義
+### _ts_l01_intro_checks.osc_ のチェッカーの定義
 
-!!! Example "Hands-on Time"
-    ソースタブの`ts_l01_intro.osc`テストファイルの6行目をクリックしてインポートされた`ts_l01_intro_checks.osc`ファイルを開きます。
+!!! 例 "ハンズオンタイム"
+    ソースタブの`ts_l01_intro.osc` テストファイルの6行目をクリックしてインポートされた`ts_l01_intro_checks.osc` ファイルを開いてください。
 
 <p align="center">
   <a href="images/l01_kpi_code.png" target="_blank">
@@ -195,196 +212,228 @@ KPIは、前のセクションのカバレッジ項目と同じファイルで�
   </a>
 </p>
 
-このチェッカーの目的は、シナリオ全体でSUTとcut-in carの間の距離が定義された安全距離内にあるかどうかを評価することです。
+このチェッカーの目的は、シナリオ全体を通じて SUT とカットイン車との距離が定義された安全距離内かどうかを評価することです。
 
-- Line 1では、新しいチェッカーのためにユニークな名前（safety_distance）でissue_kindタイプが拡張されています。
-- 行3から12では、チェッカーを記述するための以前に定義されたシナリオが拡張されています：
-    - 行5 - 6：安全距離のしきい値用の変数が宣言され、13メートルの値に設定されています
-    - 行8から10：シミュレーションの各タイムステップ（top.clk）で、以下を確認します：
-      - 2台の車両間の距離が定義されたしきい値を超えているかどうか
-      - 両方の車両が同じレーンにいるかどうか
-    - 行11から12：上記の条件を満たさない場合、テストランはsut_errorタイプおよびsubtype safety_distanceのエラーで停止します。
+- In line 1, the `issue_kind` type is being extended with a unique name (`safety_distance`) for the new checker.
+- Lines 3 to 12 extend the previously defined scenario for writing the checker as follows:
+    - Lines 5 - 6: A variable for the safety distance threshold is declared, and set to a value of 13 meters
+    - Lines 8 to 10 verify at each time step (`top.clk`) of the simulation, whether:
+      - the distance between the two cars is above the defined threshold
+      - both vehicles are in the same lane
+    - Lines 11 to 12: If the condition above is not met, then the test run is stopped with an error of the type `sut_error`, and subtype `safety_distance`.
 
-!!! 情報
+!!! Info
 
-    - 追加されたチェッカーはユーザー定義のチェッカーですが、Foretifyには組み込みのチェッカーも付属しています。これらは[Global checkers for vehicles documentation](../osc_dom/oscdomain
+    - The checker just added is a user-defined checker, but Foretify comes with built-in checkers. You can review those in the [Global checkers for vehicles documentation](../osc_dom/oscdomain_metrics.md#global-checkers-for-vehicles).
+
+    - Another term used in the industry for checker is evaluator.
+
+    - With checkers you can represent the success or failure criteria for scenarios, and they are written with the same language (OSC2) used to represent actions and actors.
+
+    - Some predefined checkers are always active when using Foretify, such as the collision check or a check for the SUT driving off-road. You can always modify the defaults that apply for all scenarios.
+
+    - You can define custom checkers to capture issues specific to your SUT, as in our example. The checker we have exercised uses the KPI value and a predefined threshold, in order to evaluate the SUT's expected behavior, but this is just one way of defining it. 
+
+### Map definition
+
+In the code below (lines #8 and #9 of the test file `ts_l01_intro.osc`), we set the map to be used, a map that is in OpenDrive format (i.e. `*.xodr`).
 
 ```osc linenums="8"
 extend test_config:
- set map = "$FTX_WORKSHOP/maps/Town04.xodr"
+    set map = "$FTX_WORKSHOP/maps/Town04.xodr"
 ```
 
-### シナリオの実行
+### シナリオ実行
 
-`ts_l01_intro.osc` ファイルの最後の2行では、ついに _cut_in_l01_ シナリオを呼び出します。OSC2 プログラムのエントリーポイントは常に _top.main_ シナリオであり、これは C/C++ の _main()_ 関数と似ています。
+`ts_l01_intro.osc`ファイルの最後の2行では、ついに_cut_in_l01_シナリオを呼び出します：つねに実行されるOSC2プログラムのエントリーポイントは_top.main_シナリオで、これはC/C++の_main()_関数と同様です：
 
 ```osc linenums="11"
 extend top.main:
- do cil : sut.cut_in_l01()
+    do cil : sut.cut_in_l01()
 ```
-このコードはテストファイルの11行目と12行目にあります。
+このコードは、テストファイルの11行目と12行目にあります。
 
-## 最初の実行とForetify
+## 初回実行とForetify
 
-### 制約付きランダム生成および適応的シナリオ実行
+### 制約付きランダム生成と適応シナリオ実行
 
-その名前が示すように、*制約付きランダム生成* とは指定された制約空間内でランダム変数を生成することを意味します。これは SDV（Safety-Driven Verification）フローの基本的な前提条件であり、Foretify の構築原理です。
+その名前が示すように、*制約付きランダム生成*とは、指定された制約内のランダム変数を生成することを意味します。これはSDV（Safety-Driven Verification）フローの基本的な前提条件であり、Foretifyが構築されている中心的な原則です。
 
-OSC2 の抽象シナリオから、Foretify の生成エンジンは指定された制約条件内で具体的なシナリオをランダムに作成します。最も重要な側面の1つは、各シナリオが展開される地図上の領域です。
+OSC2の抽象的なシナリオから、Foretifyの生成エンジンは指定された制約に基づいて具体的なシナリオをランダムに生成します。ランダム化される最も重要な側面の1つは、各シナリオが展開される地図の領域です。
 
-シナリオの計画が立てられると、ランタイム適応型シナリオ実行エンジンがその計画に従って実行を処理します。
+シナリオの計画が立てられたら、ランタイム適応型シナリオ実行エンジンがシナリオプランに従って実行を処理します。
 
 !!! Info
-**制約付きランダム生成** エンジンは Foretellix ソリューションの主要な支柱です。これは抽象的な記述から意味あるシナリオ変化を発生させる非常に強力なツールです。
+    **制約付きランダム生成**エンジンはForetellixソリューションの主要な柱です。これは、抽象的な記述から意味のあるシナリオの変化を数百万生成する非常に強力なツールです。
 
-この技術を活用することで、**エンジニア資源** を大幅に削減することが可能です。抽象的な定義から何百万もの有意義なバリエーションを生み出すため、シナリオ作成チームへ必要なものが大幅に削減されます。
+    このテクノロジーを活用すると、シナリオ作成チームに必要な**エンジニアリングリソース**が**著しく削減**されるため、抽象的な定義から多くの意味のあるバリエーションが生成されます。
 
-```markdown
-The generated scenarios, when executed, will help in challenging the system under test in order to **spot and solve bugs in a more efficient manner**.
+生成されたシナリオは実行されると、システムをテストする際に**バグを見つけて解決するのに効率的な方法**を提供します。
 
 
-### Your first run
+### 最初の実行
 
-**Before moving on, make sure that you closed the Foretify GUI in your browser.**
+**次に進む前に、ブラウザでForetify GUIを閉じていることを確認してください。**
 
-Now that you walked through the OSC2 scenario definition, you will be using simulator as your test execution platform. 
+OSC2シナリオ定義を確認した後、シミュレータをテスト実行プラットフォームとして使用します。
 
-Now you will explore the Foretify GUI more in detail, to load, launch, and analyze tests. Later you will explore more functionality of Foretify.
+次に、Foretify GUIを詳細に探索し、テストの読み込み、開始、および分析を行います。後に、Foretifyの機能をさらに探索します。
 
-!!! Example "Hands-on Time"
- Launch Foretify in GUI mode and load the test you previously examined:
+!!! 例 "実地体験"
+    ForetifyをGUIモードで起動し、以前に調査したテストを読み込む：
 
- ```bash
- foretify --gui --work_dir $FTX_FM_WORKDIR/l01_intro/workdir \
- --load $FTX_WORKSHOP/l01_intro/ts_l01_intro.osc
- ```
+    ```bash
+    foretify --gui --work_dir $FTX_FM_WORKDIR/l01_intro/workdir \
+    --load $FTX_WORKSHOP/l01_intro/ts_l01_intro.osc
+    ```
 
-The Foretify interactive window appears:
+Foretifyの対話型ウィンドウが表示されます：
 
 <p align="center">
- <a href="images/foretify_gui.png" target="_blank">
- <img src="images/foretify_gui.png">
- </a>
+  <a href="images/foretify_gui.png" target="_blank">
+    <img src="images/foretify_gui.png">
+  </a>
 </p>
 
-The Foretify window displays the following information:
-```
+Foretifyウィンドウには以下の情報が表示されます：
 
 - **Load**, **Prepare Test** and **Debug** tabs (top left):
-    - **Load**タブはGUIを通じて`.osc`ファイルを読み込むために使用されます（この際、私たちはターミナルコマンドでファイルを読み込んだため、GUIは使用しませんでした）。
-    - **Prepare Test**タブでは、実行の異なるパラメータを設定することができます。これについては後のセクションで詳しく学びます。
-    - **Debug**タブは、シミュレーションが完了した後に実行をデバッグするために使用されます。
-- **Status**（中央上部左側）：
-    - 読み込まれたファイル、読み込み状況、および読み込み中に見つかった問題の数を確認できます。
-- **Map**, **Source** and **Preview** tabs (中央左側)：
-    - **Map**タブでは、読み込まれた地図を閲覧し、地図の異なるレイヤーを探索することができます。
-    - **Source**タブには、読み込まれたソースファイルが表示され、読み込まれたコードを確認
+    - The **Load** tab is used to load `.osc` files through the GUI (we did not use the GUI for this, since we loaded the file with the terminal command).
+    - The **Prepare Test** tab allows you to set up different parameters of the run. You'll learn more about this in a later section.
+    - The **Debug** tab is used to debug the run after the simulation is completed.
+- **Status** (mid-top left):
+    - You can see the loaded file, the loading status, as well as the number of issues found during the loading.
+- **Map**, **Source** and **Preview** tabs (mid-left):
+    - The **Map** tab allows you to browse the loaded map, exploring different layers of the map.
+    - The **Source** tab shows the loaded source files, allowing you to review the loaded code and move between the loaded files.
+    - The **Preview** tab allows you to preview the planned test, after clicking the **Preview** button in the **Execution Control** area.
+- **Issues**, **Linter Violations** and **Test Info** tabs (bottom-left)
+    - The tabs display once the scenario is loaded.
+- **Control the execution** of the scenarios (upper right).
+    - You can set the seed for the run, preview the run or run the actual simulation. A seed is a unique identifier for each concrete test-execution that will be generated out of an abstract definition.
+- **Log** (mid right)
 
-```markdown
-!!! Example "実践時間"
- 実際にテストを実行する前に、VisualizerでSUTとcar1の予定ルートを表示する**Preview**ボタンで実験することができます。予定された経路は、SUTの振る舞いによって実行時に変更されるかもしれませんが、これはテストをデバッグするための非常に役立つツールです。計画された経路はシナリオのために作成された計画の表現だけであることに注意してください：実際の軌跡はランタイム中に計算および更新されます。
+!!! Example "Hands-on Time"
+    テストを実行する前に、VisualizerでSUTとcar1の計画された経路を表示する**プレビュー**ボタンで実験できます。計画された経路は、SUTの挙動によって実行時に変更される場合がありますが、テストのデバッグに非常に役立つツールです。計画された経路はそのシナリオのために作成された計画の表現に過ぎないことに注意してください。実際の軌跡はランタイム中に計算および更新されます。
 
-!!! Example "実践時間"
- テストを実行する前に、右上隅のグレー色の**Preview**ボタンをクリックし、シード番号を変更していくつかのテストパターンをプレビューしてみてください。
+!!! Example "Hands-on Time"
+    実行前に、グレーの**プレビュー**ボタンをクリックしていくつかのテストシードをプレビューしてみてください。右上隅にあります。また、シード番号を変更することもできます。
 
-!!! Example "実践時間"
- 右上隅の紫色の**Run Test**ボタンをクリックしてテストを実行します。また、右上隅の**Terminal**ボタンをクリックし、「_run_」と入力してもテストを実行できます。
+!!! Example "Hands-on Time"
+    右上隅にある紫の**実行**ボタンをクリックしてテストを実行してください。また、右上隅にある**ターミナル**ボタンをクリックして_run_と入力することでもテストを実行できます。
 
-シミュレータウィンドウが表示されます：
+シミュレーターウィンドウが表示されます:
 
-- Foretify制約ランダム生成エンジンでは、シナリオ内で指定された制約およびパラメーターに基づいて特定のバリアントが生成されました。プレビュー時に見たもう一方アクター用予定経路です。
+- Foretifyの制約ランダム生成エンジンは、シナリオの特定のバリアントを生成しました。これは、シナリオ用のOSC2コードで指定された制約とパラメータに基づいています。アクターの計画された経路は、プレビュー時に見たものです。
 
-- Foretifyランタイムテストオーケストレーションエンジンでは、テスト実行プラットフォーム（シミュレータ）内でアクターが指定した制約どおり移動可能であることが確認されました。
+- Foretifyのランタイムテストオーケストレーションエンジンは、テスト実行プラットフォーム（シミュレーター）内のアクターが指定された制約に従って移動できるようにしました。
 
-ランサイムテストオーケストレーショングエインでは、「適応的なシナリオ実行」が保証されており、SUT用予定ルートから逸脱した場合はNPCから対応策が講じられるためOSC2ファイルで指示したシナリオ意図が達成されます。
+ランタイムテストオーケストレーションエンジンは、**適応型シナリオ実行**を確実にします。つまり、SUTの計画された経路からの逸脱は、OSC2ファイルで指定されたシナリオの意図が達成されるようにNPCから対応策が取られます。
 
-```
-After the test is completed, the log area shows two additional tabs:
+テストが完了すると、ログエリアに2つの追加タブが表示されます:
 
-- **トレースの詳細**タブでは、シミュレーション中に収集された値と共にシナリオトレース情報を調査できます。トレースの種類、アクター、時間、および期間などが含まれます。
+- **トレース詳細**タブを使用すると、シミュレーション中に収集された値とともにシナリオトレース情報を検査できます。トレースの種類、アクター、時間、および期間などが含まれます。
 - **ログ**タブには、テスト実行中に生成されたログが含まれています。
-- **メトリクス**タブは、カバレッジに関連しており、ワークショップで後日詳しく説明されます。
+- **メトリックス**タブは、カバレッジに関連しており、ワークショップで後日詳細に説明します。
 
 !!! 例 "実践時間"
-    現時点では、**ログ**タブを確認し、カットインがどちらの側で発生するかを示すために追加したログメッセージが表示されるかどうかを確認してください。
+    今の段階では、**ログ**タブを確認し、カットインがどちらの側で発生するかを示すために追加したログメッセージが表示されているかどうかを確認してください。
 
 ### ランのデバッグ
 
-#### Foretify Visualizerでデバッグ
+#### Foretify Visualizerを使用したデバッグ
 
-テストを実行した後、画面の中央に**Visualizer**タブにアクセスできます。Visualizerは、実行を分析するのに役立つさまざまな方法で構成できるグラフィカルな事後処理ツールの1つです。ランを可視化することは実行を繰り返すこととは
+テストを実行した後、画面の中央にある**Visualizer**タブにアクセスできます。Visualizerは、実行を分析するのに役立つさまざまな方法で構成できるグラフィカルな事後処理ツールの1つです。実行を視覚化することは、実行を繰り返すこととは異なります。シミュレータを必要とせず、再実行が消費する計算リソースを必要としません。
 
-##### マップのパースペクティブ
-ビジュアライザーで右クリックしてカーソルを別の方向にドラッグすることで、パースペクティブを変更できます。ビジュアライザーの右上にあるレンチアイコンをクリックすると、「表示ツール」にアクセスできます。「表示ツール」には以下のオプションがあります。
+実行が完了すると、画面の左側に**Visualizer**タブが自動的に開きます。
+いつでもタブをクリックしてVisualizerに戻ることができます。
 
 <p align="center">
- <a href="images/visualizer_tools.png" target="_blank">
- <img src="images/visualizer_tools.png">
- </a>
+  <a href="images/visualizer.png" target="_blank">
+    <img src="images/visualizer.png">
+  </a>
 </p>
 
-- レーン方向: 運転方向矢印の表示を有効または無効にします。
+##### テストの再生
+
+まず、Visualizerタイムラインの左下にある再生ボタンを押して、シナリオが再生される様子を確認できます。
+
+<p align="center">
+  <a href="images/visualizer_play_button.png" target="_blank">
+    <img src="images/visualizer_play_button.png">
+  </a>
+</p>
+
+##### 地図パースペクティブ
+Visualizer内で右マウスボタンをクリックし、カーソルを異なる方向にドラッグすることでパースペクティブを変更できます。Visualizerの右上にあるレンチアイコンをクリックして**ビューツール**にアクセスできます。**ビューツール**にはビューを制御するオプションがあります：
+
+<p align="center">
+  <a href="images/visualizer_tools.png" target="_blank">
+    <img src="images/visualizer_tools.png">
+  </a>
+</p>
+
+- レーン方向: 運転方向の矢印の表示を有効または無効にします。
 - 信号: 信号の表示を切り替えます。
 - 速度制限: 道路の速度制限を表示します。
-- 衝突回避: 衝突回避機能の可視化を有効にします。
-- 実行時軌跡: 選択した車両エージェントの軌跡を表示します。
-- 計画された経路: シナリオ内に存在する車両の経路を強調表示します。
-- 計画された目的地: 選択した車両エージェント用に生成された計画された目的地を表示します。
-- 計画されたポーズ: SUTおよび他の車両の次ポーズが強調表示されます。
-- ドライバー目標: 選択した車両エージェント用に生成された運転目標が表示されます。
-- 予測位置: 車両の予測位置が表示されます。
+- 衝突回避: 衝突回避の有効性を表示します。
+- ランタイム軌跡: 選択した車両の軌跡を表示します。
+- 予定された経路: シナリオに存在する車両の経路を強調表示します。
+- 予定された目的: 選択した車両に生成された予定目的を表示します。
+- 予定されたポーズ: SUTと他の車両の次のポーズを強調表示します。
+- ドライバー目的: 選択した車両に生成された運転目的を表示します。
+- 予測ポーズ: 車両の予測位置を表示します。
 
 ##### カメラ設定
 
-パースペクティブとカメラを制御する場合は、[Camera Settings (camera)] アイコン をクリックしてください。特定 のアクター をカメラで追跡する場合は、左上隅（i）から アクターリストから アクター を選択し、もしくはビジュアライザ内で クリックしてカメラ を固定位置 へ設定してください。
+パースペクティブおよびカメラを制御するには、カメラ設定（カメラ）アイコンをクリックしてください。カメラで特定のアクターを追跡するには、左上隅の（i）ドロップダウンリストからアクターを選択するか、Visualizer内でクリックしてカメラを固定ポジションに設定します。
 
 <p align="center">
- <a href="images/Camera_settings.png" target="_blank">
- <img src="images/Camera_settings.png">
- </a>
+  <a href="images/Camera_settings.png" target="_blank">
+    <img src="images/Camera_settings.png">
+  </a>
 </p>
 
- - パースペクティブビュー：透視図へ変更
- - 選択したアクターに追従：選択したアクター を追従
- - カメラ を選択した アトウォ の位置ぐ位まり直す：カメラン の位置　服装いセつ 天まりE戒て気儒指す 眠キ floわせ
+- パースペクティブビュー: パースペクティブを上から見たビューに変更します。
+- 選択したアクターにフォロー: 選択したアクターを追跡します。
+- 選択したアクターにカメラをリセット: カメラを選択したアクターの位置にリセットします。
 
-- もしVisualizerがパースペクティブビューにある場合は、Visualizerの右上にあるカメラ設定アイコンを選択し、パースペクティブビューオプションをオフにしてください。
+##### 距離の計測
 
+- もしVisualizerがパースペクティブビューにある場合は、Visualizerの右上にあるカメラ設定アイコンを選択し、パースペクティブビューオプションをオフにします。
 <p align="center">
   <a href="images/Measurement_1.png" target="_blank">
     <img src="images/Measurement_1.png">
   </a>
 </p>
 
-- 測定距離ツールアイコンを選択してください。
-
+- 「距離測定ツール」アイコンを選択します。
 <p align="center">
   <a href="images/Measurement_2.png" target="_blank">
     <img src="images/Measurement_2.png">
   </a>
 </p>
 
-- Visualizer内でポイントしてクリックして、測定の開始点を設定し、カーソルを移動してクリックして、測定の終了点を設定してください。
-
+- 測定を開始する点を設定するためにVisualizerでクリックし、次にカーソルを移動させて測定の終点を設定するためにクリックします。
 <p align="center">
   <a href="images/Measurement_3.png" target="_blank">
     <img src="images/Measurement_3.png">
   </a>
 </p>
 
-測定値は、開始点と終了点を結ぶ線の隣に表示されます。
+測定は、開始点と終点をつなぐ線の隣に表示されます。
 
-- 測定を非表示にするには、測定距離ツールアイコンを切り替えてオフにしてください。
+- 測定を非表示にするには、距離測定ツールアイコンをオフに切り替えます。
 
-#### トレースでデバッグ
+#### トレースを使用したデバッグ
 
-すべてのトレースは、トレースビューの下で表示できます。トレースビューはタイムラインに合わせて配置されているため、異なるトレースを簡単に比較できます。
+すべてのトレースはトレースビューの下で表示できます。トレースビューはタイムラインに整列しているため、異なるトレースを簡単に比較することができます。
 
-**トレース**は、次のような異なるタイプで表されます。
+**トレース**は次の異なるタイプとして表現されます：
 
-- **インターバル**：一定期間にわたって収集された値のコレクションを表します。インターバルには、名前、開始/終了時間、タイプがあり、特定のアクター（オレンジボックス）に関連付けられています。
+- **インターバル**: 一定期間にわたって収集された値のコレクションを表します。インターバルには、名前、開始/終了時刻、種類があり、特定のアクター（オレンジのボックス）と関連付けられています。
 
-- **値**：時間の経過とともに変化する単一の値を表します。値は波形グラフとして表示され、値トレースには、名前、値、単位があり、特定のアクター（赤いボックス）に関連付けられています。
+- **値**: 時間経過とともに変化する単一の値を表します。値は波形グラフとして表示され、値トレースには名前、値、単位があり、特定のアクター（赤いボックス）と関連付けられています。
 
 <p align="center">
   <a href="images/Traces_1.png" target="_blank">
@@ -392,131 +441,276 @@ After the test is completed, the log area shows two additional tabs:
   </a>
 </p>
 
-視覚化を向上させるために、Foretifyはすべてのシナリオの開始時間と終了時間を記録します。
+視覚化を向上させるために、Foretifyはすべてのシナリオの開始時刻と終了時刻を記録します。
 
 ##### インターバルを表示するには：
-
-- Foretifyのデバッグ実行タブを選択し、Visualizerの下にあるトレースタブをクリックしてください。
+- Foretifyの「Debug Run」タブを選択し、「Visualizer」の下にある「Traces」タブをクリックします。
 
 ```markdown
-&lt;p align="center">
-  &lt;a href="images/Traces_2.png" target="_blank">
-    &lt;img src="images/Traces_2.png">
-  &lt;/a>
-&lt;/p>
+<p align="center">
+  <a href="images/Traces_2.png" target="_blank">
+    <img src="images/Traces_2.png">
+  </a>
+</p>
 
-トレースは、現在時刻を示すカーソルを持つタイムライン上のインターバルとして表示され、VisualizerやTracesタブ内のアクター値トレースなど、他の時間ベースのビューに対応しています。
+トレースは、現在の時刻カーソルを持つタイムライン上のインターバルとして表示され、VisualizerやTracesタブ内のアクターの値トレースなどの他の時間ベースのビューと対応しています。
 
 1. トレース名の左側の矢印をクリックして展開し、その子シナリオを表示します。
 
 2. トレースをクリックして、トレースの詳細（トレースタイプ、アクター、時間、期間、およびインターバル中に収集されたメトリクスなど）を表示します。
 
-3. トレースの詳細で、トレースの開始時刻または終了時刻をクリックして、ユニバーサルタイムラインをその時刻に設定します。
+3. トレースの詳細の下で、トレースの開始時刻または終了時刻をクリックして、その時間にユニバーサルタイムラインを設定します。
 
 ##### タイムラインをトレースに合わせるには：
-1. Tracesタブで、タイムラインにフレームを設定したいインターバル（オレン
+1. Tracesタブで、タイムラインにフレームしたいインターバル（オレンジボックス）を選択します。
 
-```markdown
-Now you can close Foretify by typing exit in the Foretify terminal or closing the Foretify window.
-
-!!! Info
-    The **seed** serves as input for the random generation of one specific concrete execution out of an abstract scenario definition. Generating the concrete test out of the abstract definition again with the **same seed** results in the **same concrete variation**. This is a critical feature that lets you fully randomize the testing on one hand, but also recreate a single concrete execution for debug purposes.
-
-    Thanks to the seed definition and implementation, you can always **trace the particular concrete variation generated.** Traceability of scenarios is a fundamental feature that lets you identify the conditions that led to the bug and to reproduce them.
-
-## Foretify Manager
-
-Now that you've run the first tests, you can explore the achieved coverage and results. We will formally define coverage in the Lab 2, but for now you will visually explore this concept using the Foretellix tools.
-
-Foretify Manager is the Foretellix tool that lets
-
-1
-
-```markdown
-!!! Example "Hands-on Time"
- Foretify Manager webアプリに戻り、ブラウザで開いたらリフレッシュボタンを押してください（「Test Suite Results」タブにいることを確認してください）。
-
-アップロード後、テスト実行はロードされ、以前に作成したプロジェクトに表示されます：
+2. フレームタイムラインアイコン（赤いボックス）をクリックします。
 
 <p align="center">
- <a href="images/fmanager_regression_2.png" target="_blank">
- <img src="images/fmanager_regression_2.png">
- </a>
+  <a href="images/Intervals_3.png" target="_blank">
+    <img src="images/Intervals_3.png">
+  </a>
+</p>
+
+- タイムラインをインターバルにフレームしないようにリセットするには、タイムラインの右側にあるアンフレームタイムラインアイコンをクリックします。
+
+<p align="center">
+  <a href="images/Intervals_4.png" target="_blank">
+    <img src="images/Intervals_4.png">
+  </a>
+</p>
+
+!!! Example "Hands-on Time"
+    Visualizerを使用してテストをリプレイし、SUTの動作や上記で議論した異なるオプションを調べます。
+
+### 異なるシードで実行
+
+!!! Example "Hands-on Time"
+    右上の実行制御エリアを使用して、シード番号を4に設定して**Run Test**ボタンをクリックして別のシミュレーションを実行します。これは、最小距離閾値に導入されたチェッカーが失敗する1つのシードです。
+
+    お好きなシードで別のシミュレーションを実行します。
+
+    再度、カットインがどちら側で起きたかを示すメッセージを検索します。
+```
+
+```markdown
+## Foretify Manager
+
+そろそろForetifyを閉じることができます。Foretify端末でexitを入力するか、Foretifyウィンドウを閉じることで閉じることができます。
+
+!!! Info
+    **Seed**は、具象的な実行のランダム生成のための入力として機能します。抽象的なシナリオ定義から具体的なテストを生成する際、同じシードを使用すると**同じ具体的なバリエーション**が生じます。これは、テストを完全にランダム化する一方で、デバッグ目的で単一の具体的な実行を再現することができる重要な機能です。
+
+    シードの定義と実装により、いつでも生成された特定の具体的なバリエーションを**追跡**することができます。シナリオのトレーサビリティは、バグが発生した条件を特定し再珺することができるため、重要な機能です。
+
+Foretify Managerを実行したら、達成したカバレッジと結果を見ることができます。カバレッジはLab 2で正式に定義しますが、今はForetellixツールを使用してこのコンセプトを視覚的に探索できます。
+
+Foretify Managerは、検証プロセス全体の状態を可視化し、多くのテスト実行の結果やKPIをインポートするForetellixツールです。以下のイメージに示すように、クライアントサーバーアーキテクチャを持っています:
+
+<p align="center">
+  <a href="images/fmanager_architecture.png" target="_blank">
+    <img src="images/fmanager_architecture.png">
+  </a>
+</p>
+
+クライアントはPythonスクリプトまたはWeb UI（Webページ）のいずれかであり、どちらもテストスイートの結果データに対して操作やクエリを実行できます。サーバーはデータベースを管理し、クライアントのコマンドを実行します。このトポロジーにより、複数のユーザーが同時に検証結果の異なる側面を分析できます。
+
+###  Foretify Managerを開く
+
+Foretify Managerはブラウザベースのアプリケーションです。
+```
+
+!!! Example "Hands-on Time"
+    ターミナルから以下のコマンドを呼び出すことでForetify Managerを起動します:
+
+    ```bash
+    fmanager
+    ```
+
+    最初に表示されるのはログインページです:
+
+    <img src="images/fmanager_login.png" alt="image" width="200"/>
+
+!!! Info
+    担当者に連絡して、アサインされたユーザー名とパスワードについて詳細を確認してください。
+
+
+
+### プロジェクトの作成
+
+Foretify Managerのプロジェクトは、検証データや収集されたメトリクスに対して権限と所有権を設定するための協力フレームワークです。
+
+プロジェクトを作成するには:
+
+1. Foretify Managerを開いて、Foretify Managerの資格情報でログインします。
+
+2. プロジェクトを作成するために、「新規プロジェクトを作成」をクリックします。
+
+!!! Info
+    プロジェクト名に関する詳細情報は、担当者にお問い合わせください。
+
+- 紫の"Create"ボタンをクリックします 
+
+<p align="center">
+  <a href="images/fmanager_project.png" target="_blank">
+    <img src="images/fmanager_project.png">
+  </a>
+</p>
+
+<p align="center">
+  <a href="images/fmanager_project_2.png" target="_blank">
+    <img src="images/fmanager_project_2.png">
+  </a>
+</p>
+
+### テストスイートの結果をアップロードする
+
+この時点で、Foretify Managerデータベースは空なので、次のステップは実行したテストの結果をアップロードすることです。
+
+!!! Example "Hands-on Time"
+    ターミナルに移動して以下のコマンドを呼び出して結果をアップロードします:
+
+    ```bash
+    upload_runs ${FTX_FM_SERVER_ARGS} ${FTX_FM_LOGIN_ARGS} \
+    --runs_top_dir $FTX_FM_WORKDIR/l01_intro/workdir
+    ```
+
+``` --run_group_name ``` パラメータを使用して、テストグループに特定の名前を付けることができます。[upload_runsのドキュメント](../fman_user/fmanuser_launch_test_suite.md#upload-a-regression)を参照してください。
+
+!!! Example "Hands-on Time"
+    ブラウザで開いたForetify Managerウェブアプリに切り替えて、リフレッシュボタンをクリックしてください（「Test Suite Results」タブにいることを確認してください）
+
+アップロード後、テストの実行が読み込まれ、以前に作成したプロジェクトに表示されます：
+
+<p align="center">
+  <a href="images/fmanager_regression_2.png" target="_blank">
+    <img src="images/fmanager_regression_2.png">
+  </a>
 </p>
 
 ### アップロードされた実行の分析
 
-ただいまインポートしたテストスイートをクリックすると、個々の実行を確認できます。
+今インポートしたテストスイートをクリックすれば、個々の実行を確認できます。
 
 以下の画像のようなものが表示されるはずです：
 
 <p align="center">
- <a href="images/fmanager_runs.png" target="_blank">
- <img src="images/fmanager_runs.png">
- </a>
+  <a href="images/fmanager_runs.png" target="_blank">
+    <img src="images/fmanager_runs.png">
+  </a>
 </p>
 
-色つきの四角が示す内容は次の通りです：
+色付きの四角が示すものは次の通りです：
 
-- _黄色_: 実行一覧上部にあるアイコンでは、実行をエクスポートまたは削除したり、選択肢を保持またはリセットしたりできます。右端の列選択アイコンではディレクトリやOSユーザー、期間などラン属性を追加・削除できます。
-- _オレンジ_: _Issues Tree_ では種類別にすべての問題がグループ化されて表示されます。
-- _青_: _Aggregation View_ ではラン属性に基づいて実行が集約表示されます。
+- _yellow_: 実行リストの右上にあるアイコンで実行のエクスポートや削除、選択の保持やリセットができます。右端の列選択アイコンを使用して、実行属性（ディレクトリ、OSユーザ、実行時間など）を追加または削除できます。
+- _orange_: _Issues Tree_ は、種類ごとにグループ化されたすべての問題を表示します。
+- _blue_: _Aggregation View_ では、実行属性に基づいて実行を集計できます。
 
-_Runs_ ビューで任意の実行をクリックすると新しい Foretify Manager ウィンドウが表示されます。
+_実行_ビューで実行をクリックすると、新しいForetify Managerウィンドウが表示されます。
 
 <p align="center">
- <a href="images/Run_view_2.png" target="_blank">
- <img src="images/Run_view_2.png"> 
- </a>
+  <a href="images/Run_view_2.png" target="_blank">
+    <img src="images/Run_view_2.png">
+  </a>
 </p>
 
-おわかりいただけるように、「**Debug Run**」と「**Run Summary**」というメインタブがあります。
-「**Debug Run**」タブは以前 Foretify で見たものそのままです、
+ご覧のように、メインタブが2つあります：**Debug Run** と **Run Summary**.
+**Debug Run** タブは、Foretifyで以前に見たものと全く同じです。
 
-<p align = "center"> 
-<a href =" images/run_source.png "target =" blank "> 
-<img src =" images/run_source .png "> 
-</ a> 
-</ p> 
+<p align="center">
+  <a href="images/run_source.png" target="_blank">
+    <img src="images/run_source.png">
+  </a>
+</p>
 
-「 **Run Summary **」タブ をクリックすることで失敗した 実 行 の 詳細 情報 を 詳しく 確認 し ること が でき ます。
+**Run Summary** タブをクリックすると、失敗した実行に関する詳細情報を確認できます。
+
+```markdown
+<p align="center">
+  <a href="images/run_summary.png" target="_blank">
+    <img src="images/run_summary.png">
+  </a>
+</p>
+
+!!! 例 "実践タイム"
+    各ランをクリックして、他の2つのランを今すぐご覧ください。
+
+### ワークスペースとは何か、そしてそれを作成する方法
+
+ワークスペースとは、カバレッジデータを分析したいインポートされたテストスイートのセットです。
+
+!!! 例 "実践タイム"
+    **テストスィートの結果** タブでテストスイートを選択し、次に以下に示すように **ワークスペースの作成** をクリックします。
+
+<p align="center">
+  <a href="images/fmanager_workspace_2.png" target="_blank">
+    <img src="images/fmanager_workspace_2.png">
+  </a>
+</p>
+
+ワークスペース名を選択します。その後、 **ワークスペースの作成** をクリックして、ワークスペースを作成します。
+
+<p align="center">
+  <a href="images/fmanager_workspace_name_2.png" target="_blank">
+    <img src="images/fmanager_workspace_name_2.png">
+  </a>
+</p>
+
+Foretify Manager のウェブアプリケーションは、**現在のワークスペース** ビューに切り替わります：
+
+<p align="center">
+  <a href="images/fmanager_workspace_after_creation.png" target="_blank">
+    <img src="images/fmanager_workspace_after_creation.png">
+  </a>
+</p>
+
+
+ワークスペースには、以下が含まれます：
+
+- **VGrade** は総合メトリクスグレードです（ラボ4で学習します）。
+- **Total Runs**（**VGrade** の隣）は、パスしたランと失敗したランの統計です。
+- **VPlan** タブ（青）では、メトリクス階層を表示できます。
+- **Runs** タブ（緑）では、現在のワークスペースで選択されたランのリストを見ることができます。
+
+!!! 例 "実践タイム"
+    **VPlan** ツリーと **Runs** タブ内のランを探索してください。
+
+### メトリクスとチェッカーの表現
 ```
 
-1
-
 #### カバレッジ
-当社の `ts_l01_intro_cov.osc` カバレッジファイルには、4つのカバレッジ項目と1つのKPIメトリックが定義されています。
-例えば、cut_in_side はカバレッジグレードが100%であり、一方で speed_sut はわずか20%のカバレージグレードです。これは、speed_sut のカバー率を埋めるためにさらにテストを実行する必要があることを示しています。
-当社のファイルでは、これら2つのカバレッジアイテムがわずかに異なる方法で定義されていました：
+ 当社の `ts_l01_intro_cov.osc` カバレッジファイルには、4つのカバレッジアイテムと1つのKPIメトリックが定義されています。
+ 例えば、`cut_in_side` はカバレッジグレードが100％であり、一方で `speed_sut` は20％しかカバレッジグレードがありません。これは、`speed_sut` のカバレッジの空きバケツを埋めるためにさらにテストを実行する必要があることを示しています。
+ 当社のファイルでは、これら2つのカバレッジアイテムがわずかに異なる方法で定義されていました：
 
-- 注意：使用するシードによってパーセンテージが異なる場合があります！
-
-<p align="center">
- <a href="images/lab01_coverage_conclusions.png" target="_blank">
- <img src="images/lab01_coverage_conclusions.png">
- </a>
-</p>
-
-speed_sut では、各バケットを指定しましたが、cut_in_side では任意の規則を課していません。これにより cut_in_side カバレッジアイテムに余分な自由度が与えられました。このアイテムは100% のカバー率を持っています。左右の可能性それぞれ（left and right）が少なくとも1回ずつテスト中にヒットしたためです。
-
-!!! Example "実践時間"
-VPlanタブ内のforetify managerで他のカバリエージアイテムとその評価値を確認してください。_cut_in_side_ のカラーレージ項目を見つけることができます。
-
-#### KPI（重要業績評価指標）
-ご記憶の通り、私たちは以前 distance_kpi KPI を定義しました。これは変更車線終了時点でSUTと切り込み車両間の距離を測定します。その際に事象を特定することで最も興味深いピーク時点でアイテム値 をより良く捉えることが可能です。また事象も特定されているため、このKPIでは実行ごとに一度だけ単一値が得られていることに気付きます。
+ - 注意：使用されるシードによってパーセンテージが異なる場合があります！
 
 <p align="center">
- <a href="images/workspace_kpi_2.png" target="_blank">
- <img src="images/workspace_kpi_2.png">
- </a>
+  <a href="images/lab01_coverage_conclusions.png" target="_blank">
+    <img src="images/lab01_coverage_conclusions.png">
+  </a>
 </p>
 
-!!! Example "実践時間"
-どんなKPI値を取得しましたか？Visualizer内でもシミューレーションやその値間関係 を確認することが出来ます。
+`speed_sut` では、バケットを指定しましたが、`cut_in_side` ではどんなルールも課しませんでした。これにより、`cut_in_side` のカバレッジアイテムには余分な自由度が与えられました。このアイテムは、テスト中に可能な両側（左および右）が少なくとも1回はヒットされたため、カバレッジグレードが100％です。
 
-#### チェックポインタ
+!!! 例 "実習時間"
+    今、foretifyマネージャーで他のカバレッジアイテムとそのグレードを検査して、VPlanタブの下に_cut_in_side_カバレッジアイテムを見つけるはずです。
 
-**実行**タブを見ると、実行がいくつ成功し、いくつ失敗したかがわかります。失敗した実行は、コードで定義されたチェッカーから来ています。チェッカーは、SUTがブール条件を満たさない場合に失敗応答を定義するため、これは即座にIssues Treeに反映されます。
+#### KPIs
+ 記憶に新しいかと思いますが、以前に `distance_kpi` KPI を定義し、それはSUTと切り込み車両との距離を、レーン変更の終了イベント時に測定します。イベントを指定することで、最も関心を持つアイテムの値をよりよく捉えることができます。また、イベントが指定されているため、このKPIについては実行ごとに単一の値があることに気づきます。
+
+<p align="center">
+  <a href="images/workspace_kpi_2.png" target="_blank">
+    <img src="images/workspace_kpi_2.png">
+  </a>
+</p>
+
+!!! 例 "実習時間"
+    どのKPI値を取得しましたか？Visualizerでシミュレーションを確認し、その値とシミュレーションの関連性を見てください。
+
+#### チェッカー
+
+**Runs**タブを見ると、合格した実行数と失敗した実行数がわかります。失敗した実行はコードで定義されたチェッカーから来ています。チェッカーはSUTがブール条件を満たさなかった場合に失敗応答を定義するため、これはIssues Treeに即座に反映されます。
 
 <p align="center">
   <a href="images/checkers.png" target="_blank">
@@ -525,135 +719,179 @@ VPlanタブ内のforetify managerで他のカバリエージアイテムとそ�
 </p>
 
 !!! 例 "実践時間"
-    実行を分析してください。失敗した実行はいくつありましたか？
+    実行を分析してください。何件の失敗した実行がありましたか？
 
-### カバレッジの増加
+### カバレッジを拡大
 
-わずかなテストでは、意味のあるカバレッジを達成するには十分ではありません。Foretellixの技術の強みは、大量の自動生成テストを実行することにあります。したがって、このセクションでは、カバレッジを増やすためにさらにテストを実行します。これには、シナリオから異なるテストケースを作成する必要があります。上記の説明にあるように、これは作成時に使用されるシードによって制御されます。
+わずかなテストでは、意味のあるカバレッジを達成するには十分ではありません。Foretellixテクノロジーの強みは、大量の自動生成テストを実行することにあります。したがって、このセクションでは、カバレッジを増やすためにさらに多くのテストを実行します。これを行うには、シナリオから異なるテストケースを作成する必要があります。前述のように、これは作成時に使用されるシードによって制御されます。
 
 **次に進む前に、ブラウザでForetify GUIを閉じてください**。
 
 !!! 例 "実践時間"
-    さらに15のテストを実行し、新しい作業ディレクトリを設定します。Foretify GUIは使用しないため、シミュレータウィンドウが時折表示されます。
+    さらに15件のテストを実行し、新しい作業ディレクトリを設定します。Foretify GUIを使用しないことに注意してください。そのため、シミュレータウィンドウが定期的に表示されることになります。
 
     ```bash
     foretify --work_dir $FTX_FM_WORKDIR/l01_intro/workdir2 \
     --load $FTX_WORKSHOP/l01_intro/ts_l01_intro.osc --batch --seed 20 --crun 15
     ```
 
-    ```--crun```オプションは、シード20から始まる15のテストを実行します（つまり、シード20から34までのシード）。これはテストをスケールアップするための1つのオプションですが、Lab 3ではさらに多くのオプションをカバーします。
+    ```--crun```オプションは、シード20から（つまりシード20から34まで）15回のテストを実行します。 
+    これはテストをスケーリングアップするための1つのオプションですが、Lab 3ではさらに多くのオプションをカバーします。
 
-```markdown
-注[to_be_replace[x]]を見てください。ジェネレーションエンジンが15個のユニークな具体的なテストケースを生成し、それぞれが地図の異なるセクションにありますが、すべての具体的なテストケースを抽象的なシナリオで定義された境界内に保ちます（例：速度、車線位置など）。
+### 日本語への翻訳
 
-!!! 例 "実践時間"
- 新しいランはカバレッジを増やすはずです。次のコマンドを使用して、これらの15個の追加ランをForetify Managerにアップロードできます：
+ジェネレーションエンジンが15個のユニークな具体的なテストを生成し、それぞれが地図の異なるセクションに配置されることに注目してください。すべての具体的なテストを抽象シナリオで定義された境界内に保持します（例：速度、車線位置など）。
 
- ```bash
- upload_runs ${FTX_FM_SERVER_ARGS} ${FTX_FM_LOGIN_ARGS} \
- --runs_top_dir $FTX_FM_WORKDIR/l01_intro/workdir2
- ```
+!!! 例 「ハンズオンタイム」
+    新しいランではカバレッジが向上するはずです。次のコマンドを使用して、これらの追加の15つのランをForetify Managerにアップロードできます。
 
- その後、Foretify Managerの**Test Suite Results**タブで新しくアップロードされたテストスイートを選択し、以下の画像に示すようにそれらをワークスペースに追加します。
+    ```bash
+    upload_runs ${FTX_FM_SERVER_ARGS} ${FTX_FM_LOGIN_ARGS} \
+    --runs_top_dir $FTX_FM_WORKDIR/l01_intro/workdir2
+    ```
 
- 今では **VPlan** ツリーを探索してカバレッジがどれだけ改善したか確認できます。
+    次に、Foretify Managerの**テストスイート結果**タブで、新しくアップロードしたテストスイートを選択し、以下の画像に示すようにワークスペースに追加します。
+
+    今、**VPlan**ツリーを探索し、カバレッジがどれだけ向上したかを確認できます。
 
 <p align="center">
- <a href="images/l01_add_ws_1.png" target="_blank">
- <img src="images/l01_add_ws_1.png">
- </a>
+  <a href="images/l01_add_ws_1.png" target="_blank">
+    <img src="images/l01_add_ws_1.png">
+  </a>
 </p>
 
 ### テストスイート間の切り替え
 
-新しいテストスイートをワークスペースに追加すると、それらのテストスイート間で切り替えることができるようになります。これによりそれぞれ por一つずつ分析することが可能です。
+新しいテストスイートをワークスペースに追加すると、それらのテストスイート間を切り替えることができます。これにより、それぞれを個別に分析できます。
 
-!!! 例 "実践時間"
- ワークスペースに移動して **Test suite result workspace view** の下矢印 をクリックします。
-
-<p align="center">
- <a href="images/l01_switch_ws_1.png" target="_blank">
- <img src="images/l01_switch_ws_1.png">
- </a>
-</p>
-
-利用可能なテストスイートが表示される新しいウィンドウが表示されます。差分を確認するためにそれらから切り替えることができます。
+!!! 例 「ハンズオンタイム」
+    ワークスペースに移動し、**テストスイート結果ワークスペースビュー**で下矢印をクリックします。
 
 <p align="center">
- <a href="images/l01_switch_ws_2.png" target="_blank">
- <img src="images/l01_switch_ws_2.png" width="50%">
- </a>
+  <a href="images/l01_switch_ws_1.png" target="_blank">
+    <img src="images/l01_switch_ws_1.png">
+  </a>
 </p>
 
-新しいテストスイート読み込み後は、「Calculate」ボタン をクリックする必要があります。
-```
+利用可能なテストスイートが表示される新しいウィンドウが表示されます。これらを切り替えて違いを確認できます。
 
-```markdown
+<p align="center">
+  <a href="images/l01_switch_ws_2.png" target="_blank">
+    <img src="images/l01_switch_ws_2.png" width="50%">
+  </a>
+</p>
+
+新しいテストスイートを読み込んだ後に**計算**ボタンをクリックする必要があります。
+
+```html
+<p align="center">
+  <a href="images/l01_switch_ws_3.png" target="_blank">
+    <img src="images/l01_switch_ws_3.png">
+  </a>
+</p>
+
 ### テストスイートのグループ化
 
-複数のテストスイートを持っている場合、ワークスペースのカバレッジを増やすためにそれらをグループ化したいことがあります。
+複数のテストスイートを持っていると、ワークスペースのカバレッジを増やすためにそれらをグループ化したくなることがあります。
 
 !!! 例 "実践時間"
-    ワークスペースに移動し、**ワークスペースのテストスイート結果**をクリックし、テストスイートを選択して**グループ**アイコンをクリックします。
+    ワークスペースに移動して、**ワークスペースのテストスイート結果**をクリックし、テストスイートを選択して**グループ**アイコンをクリックしてグループ化します。
 
-### テストスイートのアングループ化
+<p align="center">
+  <a href="images/l01_group_ws_1.png" target="_blank">
+    <img src="images/l01_group_ws_1.png">
+  </a>
+</p>
 
-作成したグループを解除することも可能です。
+新しいウィンドウが表示され、グループに名前を付けて**グループ**をクリックします。
+
+<p align="center">
+  <a href="images/l01_group_ws_2.png" target="_blank">
+    <img src="images/l01_group_ws_2.png" width="50%">
+  </a>
+</p>
+
+実行が更新され、カバレッジが増加したことがわかります。
+
+<p align="center">
+  <a href="images/l01_group_ws_3.png" target="_blank">
+    <img src="images/l01_group_ws_3.png">
+  </a>
+</p>
+
+### テストスイートのグループ解除
+
+作成したグループを解除することもできます。
 
 !!! 例 "実践時間"
-    ワークスペースに移動し、**ワークスペースのテストスイート結果**をクリックし、グループ化された実行を選択して**グループ情報**アイコンをクリックして解除します。
+    ワークスペースに移動して、**ワークスペースのテストスイート結果**をクリックし、グループ化された実行を選択して**グループ情報**アイコンをクリックして解除します。
+
+<p align="center">
+  <a href="images/l01_ungroup_ws_1.png" target="_blank">
+    <img src="images/l01_ungroup_ws_1.png">
+  </a>
+</p>
+
+新しいウィンドウが表示され、**解除**ボタンをクリックします。
+
+<p align="center">
+  <a href="images/l01_ungroup_ws_2.png" target="_blank">
+    <img src="images/l01_ungroup_ws_2.png" width="50%">
+  </a>
+</p>
 
 ### マップの変更
 
-**次に進む前に、ブラウザでForetifyを閉じてください。
-
-別の方法でカバレッジを増やすには、テストが実行されるODDを変更することです。OSC2言語の強力な機能の1つは、ODDを変更するためにコードの1行だけを変更すればよいということです。
-
-新しいマップがあれば、Foretifyはシナリオをサポートできる場所でランダムに生成された新しい具体的なテストケースを見つけ出します。
-
-!!! Example "ハンズオンタイム"
-`$FTX_WORKSHOP/l01_intro/ts_l01_intro.osc`ファイルを開きます。そこにテストが定義されています。
-
-`ts_l01_intro.osc`ファイル内のシナリオを編集し、マップが次のように定義されている行を変更します：
-
-```osc linenums="8"
-extend test_config:
-  set map = "$FTX_WORKSHOP/maps/cloverleaf.xodr"
-```
-このコマンドでテストを追加で5回実行できます：
-
-```bash
-foretify --work_dir $FTX_FM_WORKDIR/l01_intro/workdir3 \
---load $FTX_WORKSHOP/l01_intro/ts_l01_intro.osc --batch --seed 2 --crun 5
+**次に進む前に、ブラウザで Foretify を閉じてください**。
 ```
 
-これで、シナリオが別のマップ上で実行されることがわかります。
+別の方法でカバレッジを増やすには、テストが実行されるODDを変更することです。OSC2言語の強力な機能の1つは、ODDを変更するにはコードの1行だけを変更すればよいということです。
 
-!!! note
+新しいマップを使用すると、Foretifyは、マップのトポロジがシナリオをサポートできる場所にランダムに生成された具体的なテストケースを見つけます。
 
-特定のシナリオに選択したマップではシナリオが実行不可能な場合は、Foretellixツールはこれを矛盾エラーとして示します。例えば、カットインシナリオは片側通行道路上では実行不可能です。
+!!! 例 "実践時間"
+    `ts_l01_intro.osc` ファイルを開きます。ここにはテストが定義されています。
 
-!!! Example "ハンズオンタイム"
-追加のテストケースを実行したら、それらをForetify Managerにアップロードしてカバレッジが改善したかどうか確認することができます。そのために次のコマンドを実行します：
+    `ts_l01_intro.osc` ファイル内のシナリオを編集し、マップが定義されている行を次のように変更します:
 
-```bash
-upload_runs ${FTX_FM_SERVER_ARGS} ${FTX_FM_LOGIN_ARGS} \
---runs_top_dir $FTX_FM_WORKDIR/l01_intro/workdir3
-```
-前もって作成したワークスペースに新しいランスケース を追加してください。
+    ```osc linenums="8"
+    extend test_config:
+        set map = "$FTX_WORKSHOP/maps/cloverleaf.xodr"
+    ```
+    このコマンドを使用して、テストをさらに5回実行できます:
+
+    ```bash
+    foretify --work_dir $FTX_FM_WORKDIR/l01_intro/workdir3 \
+    --load $FTX_WORKSHOP/l01_intro/ts_l01_intro.osc --batch --seed 2 --crun 5
+    ```
+
+これにより、別のマップでシナリオが実行されることがわかります。
+
+!!! 注意
+
+    特定のシナリオに選択したマップがそのシナリオの実行を許可しない場合、Foretellixツールはこれを矛盾エラーとして示します。たとえば、1車線の道路ではカットインシナリオを実行できません。
+
+!!! 例 "実践時間"
+    追加のテストを実行したので、カバレッジが改善されたかどうかをForetify Managerにアップロードして確認できます。これを行うには、次のコマンドを実行できます:
+
+    ```bash
+    upload_runs ${FTX_FM_SERVER_ARGS} ${FTX_FM_LOGIN_ARGS} \
+    --runs_top_dir $FTX_FM_WORKDIR/l01_intro/workdir3
+    ```
+    以前に作成したワークスペースに新しい実行を追加します。
 
 
-## 次の手順
+## 次のステップ
 
-このラボの目標は
+このラボの目標は以下の通りでした:
 
-- ワークショップで使用されるクラウド環境に慣れる
-- カットインシナリオの基本的なOSC2コードを確認する
+- ワークショップで使用するクラウド環境に慣れる
+- カットインシナリオ用のいくつかの基本OSC2コードを実行
 - Foretifyをインタラクティブモードで実行し、カットインシナリオを読み込む
 - シードの概念に慣れる
-- テスト用のOSC2およびその主要なコンポーネントに慣れる
-- Foretify Managerを開き、収集されたメトリクスを探索する
+- テスト用のOSC2とその主要部品に慣れる
+- Foretify Managerを開いて収集したメトリクスを調査する
 
-次は、Lab 2ではカットインシナリオを拡張し、カバレッジメトリクスをさらに収集し、Foretifyでシナリオのデバッグ方法を紹介します。
+次に、Lab 2では、カットインシナリオを拡張し、より多くのカバレッジメトリクスを収集し、Foretifyでシナリオのデバッグ方法を紹介します。
 
 > この投稿は ChatGPT を使用して翻訳されています。何か抜けている部分があれば、[**フィードバック**](https://github.com/linyuxuanlin/Wiki_MkDocs/issues/new) をお願いします。
